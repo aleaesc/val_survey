@@ -1,0 +1,1448 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Valenzuela</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" rel="stylesheet" type="text/css" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- jsPDF for PDF export -->
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.1/dist/jspdf.plugin.autotable.min.js"></script>
+    <!-- AOS for subtle entrance animations -->
+    <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet" />
+    <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+    <!-- Leaflet for interactive map analytics -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    
+    <style>
+    /* Apply Inter font as default */
+    body { font-family: 'Inter', sans-serif; background-color: #f5f5f5; color: #111827; }
+
+        /* Brand palette helpers */
+        :root {
+            --brand-primary: #5f2b9a; /* purple */
+            --brand-accent: #00a6a6;  /* cyan */
+        }
+
+        /* Admin Sidebar Styles */
+        .sidebar-link {
+            transition: background-color 0.2s, color 0.2s;
+            border-radius: 0.5rem;
+            color: rgba(255, 255, 255, 0.8);
+            font-weight: 500;
+        }
+        .sidebar-link:hover {
+            background-color: #5f2b9a; 
+            color: #ffffff;
+        }
+        .sidebar-link.active {
+            background-color: #5f2b9a; 
+            color: #ffffff;
+            font-weight: 600;
+        }
+        .sidebar-link.active i,
+        .sidebar-link:hover i {
+            color: #ffffff;
+        }
+
+        /* Hide scrollbar */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* Loading skeletons */
+        .skeleton { position: relative; overflow: hidden; background: #e5e7eb; border-radius: 0.25rem; }
+        .skeleton::after {
+            content: "";
+            position: absolute; inset: 0; transform: translateX(-100%);
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
+            animation: shimmer 1.2s infinite;
+        }
+        @keyframes shimmer { 100% { transform: translateX(100%); } }
+
+        /* Respect reduced motion */
+        @media (prefers-reduced-motion: reduce) {
+            * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+        }
+
+        /* Sticky table header for Responses usability */
+        #page-admin-responses table thead th { position: sticky; top: 0; background: #ffffff; z-index: 1; }
+
+        /* Toasts styled like the provided image */
+    .toast-container { position: fixed; right: 1rem; bottom: 1rem; display: flex; flex-direction: column; gap: 0.75rem; z-index: 9999; }
+        .toast-card { position: relative; background: #fff; border-radius: 0.75rem; box-shadow: 0 10px 20px rgba(0,0,0,0.08); padding: 1rem 1.25rem 1rem 1.25rem; min-width: 300px; max-width: 420px; display: flex; align-items: flex-start; gap: 0.75rem; }
+        .toast-card .bar { position: absolute; left: 0; top: 0; bottom: 0; width: 8px; border-radius: 0.75rem 0 0 0.75rem; }
+        .toast-title { font-weight: 800; font-size: 1.125rem; line-height: 1.25rem; margin-bottom: 0.25rem; }
+        .toast-msg { color: #374151; }
+        .toast-close { margin-left: auto; color: #6b7280; cursor: pointer; user-select: none; }
+        .toast-clickable { cursor: pointer; }
+        .toast-success .bar { background: #22c55e; }
+        .toast-info .bar { background: #3b82f6; }
+        .toast-warning .bar { background: #f59e0b; }
+        .toast-error .bar { background: #ef4444; }
+        .toast-success .toast-title { color: #16a34a; }
+        .toast-info .toast-title { color: #2563eb; }
+        .toast-warning .toast-title { color: #d97706; }
+        .toast-error .toast-title { color: #dc2626; }
+        .toast-icon { width: 36px; height: 36px; border-radius: 9999px; display: grid; place-items: center; color: #fff; font-size: 18px; }
+        .toast-success .toast-icon { background: #16a34a; }
+        .toast-info .toast-icon { background: #2563eb; }
+        .toast-warning .toast-icon { background: #d97706; }
+        .toast-error .toast-icon { background: #dc2626; }
+
+        /* Admin primary buttons hue override */
+        .btn-primary { background-color: #7885bf !important; border-color: #7885bf !important; }
+        /* Ensure map has visible height even if Tailwind arbitrary values fail */
+        #map-container { height: 480px; }
+        /* Leaflet tooltip custom class for readability */
+        .leaflet-tooltip.val-tooltip {
+            background: #ffffff; color: #111827; border: 1px solid #e5e7eb; border-radius: 6px; box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+        }
+        /* Legend styles */
+        .val-legend { background: #fff; border: 1px solid #e5e7eb; border-radius: 6px; padding: 8px 10px; box-shadow: 0 6px 16px rgba(0,0,0,0.08); }
+        .val-legend .title { font-weight: 600; font-size: 12px; margin-bottom: 6px; }
+        .val-legend .row { display: flex; align-items: center; gap: 8px; font-size: 12px; margin: 2px 0; }
+        .val-legend .swatch { width: 16px; height: 10px; border-radius: 2px; border: 1px solid #e5e7eb; }
+    </style>
+</head>
+<body>
+
+    <div id="page-admin-login">
+        <div 
+            class="relative min-h-screen flex items-center justify-center p-4 bg-cover bg-center"
+            style="background-image: url('welcomebg.jpg');"
+        >
+            <div class="absolute inset-0 bg-blue-900/50 backdrop-blur-sm"></div>
+
+            <div class="relative bg-white w-full max-w-md p-8 rounded-2xl shadow-2xl">
+                <img 
+                    src="bgseal.png" 
+                    alt="Valenzuela City Seal" 
+                    class="w-24 h-24 mx-auto mb-4"
+                    onerror="this.src='https://placehold.co/100x100/E0E0E0/333?text=City+Seal';"
+                >
+                <h2 class="text-3xl font-bold text-center text-gray-800 mb-2">Admin Login</h2>
+                <p class="text-center text-gray-600 mb-6">Sign in to view responses.</p>
+
+                <div class="space-y-4">
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">Username</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            id="admin-username" 
+                            placeholder="Username" 
+                            class="input input-bordered w-full"
+                            autocomplete="username"
+                        />
+                    </div>
+                    <div class="form-control">
+                        <label class="label">
+                            <span class="label-text">Password</span>
+                        </label>
+                        <input 
+                            type="password" 
+                            id="admin-password" 
+                            placeholder="Password" 
+                            class="input input-bordered w-full"
+                            autocomplete="current-password"
+                        />
+                    </div>
+                </div>
+
+                <p id="login-error" class="text-red-500 text-sm text-center mt-4 hidden">
+                    Please fill in all fields.
+                </p>
+
+                <!-- Removed 'Forgot Password' link as requested -->
+
+                <div class="flex items-center gap-4 mt-6">
+                    <button id="btn-admin-cancel" class="btn btn-outline btn-lg w-1/2 rounded-full">
+                        Cancel
+                    </button>
+                    <button id="btn-admin-login" class="btn btn-primary btn-lg w-1/2 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 border-none text-white">
+                        Login
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="page-admin-dashboard-container" class="hidden">
+        <div class="flex h-screen bg-[#f5f5f5]">
+            
+            <div class="w-64 bg-gradient-to-b from-[#4a0e7f] to-[#00a6a6] text-white flex flex-col flex-shrink-0">
+                
+                <div class="p-4 flex flex-col items-center border-b border-white/20">
+                    <img 
+                        src="logo.png" 
+                        alt="Valenzuelife Logo" 
+                        class="h-20 w-auto mb-2"
+                        onerror="this.src='https://placehold.co/150x50/FFFFFF/E0E0E0?text=Logo';"
+                    >
+                    <h1 class="text-lg font-semibold text-center">Valenzuela City</h1>
+                    <h2 class="text-sm font-medium text-center opacity-80">Admin Dashboard</h2>
+                </div>
+                
+                <!-- Removed static admin email display for privacy -->
+                
+                <nav class="flex-grow p-4 space-y-2">
+                    <a href="#" id="link-dashboard" class="sidebar-link active flex items-center gap-3 px-4 py-3" data-content="page-admin-dashboard">
+                        <i class="ph-bold ph-chart-bar text-xl"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="#" id="link-responses" class="sidebar-link flex items-center gap-3 px-4 py-3" data-content="page-admin-responses">
+                        <i class="ph-bold ph-files text-xl"></i>
+                        <span>Responses</span>
+                    </a>
+                    <a href="#" id="link-reports" class="sidebar-link flex items-center gap-3 px-4 py-3" data-content="page-admin-reports">
+                        <i class="ph-bold ph-chart-pie-slice text-xl"></i>
+                        <span>Reports</span>
+                    </a>
+                </nav>
+                
+                <div class="p-4 border-t border-white/20">
+                    <button id="btn-admin-logout" class="btn bg-white text-gray-700 hover:bg-gray-200 w-full rounded-full border-none">
+                        <i class="ph-bold ph-sign-out text-xl"></i>
+                        Logout
+                    </button>
+                </div>
+            </div>
+            
+            <div class="flex-grow flex flex-col overflow-auto">
+                <header class="bg-white shadow-md p-4 sticky top-0 z-10">
+                    <div class="flex items-center justify-between gap-4">
+                        <h1 id="content-header-title" class="text-3xl font-bold text-gray-800">
+                            Client Satisfaction Dashboard
+                        </h1>
+                        <div class="flex items-center gap-2 flex-wrap justify-end">
+                            <span id="ui-version" class="text-xs text-gray-400 mr-2">Admin UI v20251106-3</span>
+                            <span id="selected-count" class="text-sm text-gray-600 hidden"></span>
+                            <div class="dropdown dropdown-end">
+                                <div tabindex="0" role="button" class="btn btn-sm btn-outline rounded-full">
+                                    <i class="ph ph-download-simple mr-1"></i>
+                                    Export
+                                </div>
+                                <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-[1] w-44 p-2 shadow">
+                                    <li><a id="export-csv">CSV</a></li>
+                                    <li><a id="export-pdf">PDF</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+                
+                <main class="flex-grow p-4 sm:p-6 overflow-auto no-scrollbar">
+                    
+                    <div id="page-admin-dashboard">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                            <div class="stat bg-white rounded-lg shadow" data-aos="fade-up" data-aos-delay="0">
+                                <div class="stat-title text-gray-600">Overall Satisfaction</div>
+                                <div class="stat-value text-blue-600">72%</div>
+                                <div class="stat-desc">Based on 45 responses</div>
+                            </div>
+                            <div class="stat bg-white rounded-lg shadow" data-aos="fade-up" data-aos-delay="100">
+                                <div class="stat-title text-gray-600">Top Rated Category</div>
+                                <div class="stat-value text-2xl font-bold text-green-600 leading-tight">Cleanliness of Facility</div>
+                                <div class="stat-desc">4.40 average rating</div>
+                            </div>
+                            <div class="stat bg-white rounded-lg shadow" data-aos="fade-up" data-aos-delay="200">
+                                <div class="stat-title text-gray-600">Needs Improvement</div>
+                                <div class="stat-value text-2xl font-bold text-red-600 leading-tight">Courtesy of Staff</div>
+                                <div class="stat-desc">3.20 average rating</div>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <div class="bg-white rounded-lg shadow p-6 lg:col-span-2" data-aos="fade-up" data-aos-delay="0">
+                                <h3 class="font-bold text-lg mb-4">Overall Satisfaction per Category</h3>
+                                <div class="relative h-72 w-full">
+                                    <canvas id="barChart"></canvas>
+                                </div>
+                            </div>
+
+                            <div class="bg-white rounded-lg shadow p-6 lg:col-span-1" data-aos="fade-up" data-aos-delay="100">
+                                <h3 class="font-bold text-lg mb-4">Rating Breakdown</h3>
+                                <div class="relative h-64 w-full">
+                                    <canvas id="pieChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Barangay Map Analytics -->
+                        <div class="bg-white rounded-lg shadow p-6 mt-6" data-aos="fade-up" data-aos-delay="100">
+                            <div class="flex items-center justify-between mb-3">
+                                <h3 class="font-bold text-lg">Barangay Map Analytics</h3>
+                                <span class="text-xs text-gray-500">Hover a barangay to see metrics</span>
+                            </div>
+                            <div id="map-container" class="w-full h-[480px] rounded-md overflow-hidden border border-gray-200"></div>
+                            <p id="map-hint" class="text-sm text-gray-500 mt-2 hidden">Map data loaded.</p>
+                            <p id="map-error" class="text-sm text-red-500 mt-2 hidden">Barangay map data not found. Place a GeoJSON file at <code>/data/valenzuela-barangays.geojson</code>.</p>
+                        </div>
+
+                        <!-- Insights and Recommendations -->
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+                            <div class="bg-white rounded-lg shadow p-6" id="card-findings" data-aos="fade-up" data-aos-delay="0">
+                                <h3 class="font-bold text-lg mb-2">Initial Findings</h3>
+                                <p id="findings-text" class="text-gray-700">Loading summary…</p>
+                            </div>
+                            <div class="bg-white rounded-lg shadow p-6" id="card-recos" data-aos="fade-up" data-aos-delay="100">
+                                <h3 class="font-bold text-lg mb-2">Recommendations</h3>
+                                <ul id="recos-list" class="list-disc list-inside text-gray-700 space-y-1">
+                                    <li>Loading recommendations…</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="page-admin-responses" class="hidden">
+                        <div class="bg-white rounded-lg shadow overflow-visible">
+                            <div class="p-4 flex flex-col sm:flex-row gap-3 items-stretch sm:items-end border-b border-gray-200">
+                                <div class="flex-1">
+                                    <label class="label"><span class="label-text">Search</span></label>
+                                    <input id="search-input" type="text" placeholder="Search name, service, barangay, email, comments" class="input input-bordered w-full" />
+                                </div>
+                                <div class="w-full sm:w-64">
+                                    <label class="label"><span class="label-text">Filter by Service</span></label>
+                                    <div class="dropdown dropdown-end w-full relative">
+                                        <div id="filter-service-btn" tabindex="0" role="button" class="btn btn-outline w-full justify-between">
+                                            <span id="filter-service-label">All services</span>
+                                            <i class="ph ph-caret-down"></i>
+                                        </div>
+                                        <ul id="filter-service-menu" tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-[1000] w-full p-2 shadow max-h-64 overflow-auto">
+                                            <!-- options injected by JS -->
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="w-full sm:w-56">
+                                    <label class="label"><span class="label-text">Sort</span></label>
+                                    <div class="dropdown dropdown-end w-full relative">
+                                        <div id="sort-select-btn" tabindex="0" role="button" class="btn btn-outline w-full justify-between">
+                                            <span id="sort-select-label">Date: Newest first</span>
+                                            <i class="ph ph-caret-down"></i>
+                                        </div>
+                                        <ul id="sort-select-menu" tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-[1000] w-full p-2 shadow">
+                                            <li><a data-value="date_desc">Date: Newest first</a></li>
+                                            <li><a data-value="date_asc">Date: Oldest first</a></li>
+                                            <li><a data-value="service_az">Service: A → Z</a></li>
+                                            <li><a data-value="service_za">Service: Z → A</a></li>
+                                            <li><a data-value="barangay_az">Barangay: A → Z</a></li>
+                                            <li><a data-value="barangay_za">Barangay: Z → A</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="self-start sm:self-auto">
+                                    <label class="label opacity-0"><span class="label-text">Clear</span></label>
+                                    <button id="reset-filters" class="btn btn-outline rounded-full">Clear filters</button>
+                                </div>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="table w-full">
+                                    <thead>
+                                        <tr>
+                                            <th>
+                                                <label>
+                                                    <input id="select-all" type="checkbox" class="checkbox checkbox-sm" />
+                                                </label>
+                                            </th>
+                                            <th>#</th>
+                                            <th>Service</th>
+                                            <th>Date</th>
+                                            <th>Barangay</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="responses-tbody">
+                                        <!-- Filled by JS with live data -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="page-admin-reports" class="hidden">
+                        <div id="reports-list" class="space-y-4"></div>
+                        <p id="reports-empty" class="text-gray-500 hidden">No comments yet.</p>
+                    </div>
+                    
+                </main>
+            </div>
+            
+        </div>
+    </div>
+
+
+
+    <dialog id="modal-response-details" class="modal">
+        <div class="modal-box">
+            <h3 class="font-bold text-2xl mb-4">Response Details</h3>
+            <div class="space-y-2">
+                <p><strong>Name:</strong> Harlson</p>
+                <p><strong>Age:</strong> 20</p>
+                <p><strong>Barangay:</strong> Maysan</p>
+                <p><strong>Service:</strong> Business Permit</p>
+                <p><strong>Date:</strong> 10/28/2025, 10:20:59 PM</p>
+            </div>
+            <div class="divider"></div>
+            <h4 class="font-bold text-xl mb-2">Ratings:</h4>
+            <ul class="list-disc list-inside space-y-1">
+                <li>Staff: 5</li>
+                <li>Timeliness: 4</li>
+                <li>Cleanliness: 1</li>
+                <li>Transparency: 3</li>
+                <li>Quality: 2</li>
+                <li>Comfort: 3</li>
+                <li>Fairness: 4</li>
+                <li>Overall: 4</li>
+            </ul>
+            <div class="modal-action">
+                <form method="dialog">
+                    <button class="btn btn-primary rounded-full px-6">Close</button>
+                </form>
+            </div>
+        </div>
+        <form method="dialog" class="modal-backdrop">
+            <button>close</button>
+        </form>
+    </dialog>
+
+    <!-- Reusable confirmation modal -->
+    <dialog id="modal-confirm" class="modal">
+        <div class="modal-box">
+            <h3 id="confirm-title" class="font-bold text-lg">Confirm</h3>
+            <p id="confirm-message" class="py-4">Are you sure you want to proceed?</p>
+            <div class="modal-action">
+                <button id="confirm-cancel" class="btn">Cancel</button>
+                <button id="confirm-yes" class="btn btn-error">Yes</button>
+            </div>
+        </div>
+        <form method="dialog" class="modal-backdrop">
+            <button>close</button>
+        </form>
+    </dialog>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize AOS animations if available
+            if (window.AOS) { AOS.init({ duration: 500, once: true, offset: 40 }); }
+
+            // --- Page References ---
+            const pageAdminLogin = document.getElementById('page-admin-login');
+            const pageAdminDashboardContainer = document.getElementById('page-admin-dashboard-container');
+            
+            // --- Content References ---
+            const contentHeaderTitle = document.getElementById('content-header-title');
+            const adminContentPages = document.querySelectorAll('#page-admin-dashboard-container main > div');
+            
+            // --- Button References ---
+            const btnAdminLogin = document.getElementById('btn-admin-login');
+            const btnAdminCancel = document.getElementById('btn-admin-cancel');
+            const btnAdminLogout = document.getElementById('btn-admin-logout');
+
+            // --- Input & Error References ---
+            const adminUsernameInput = document.getElementById('admin-username');
+            const adminPasswordInput = document.getElementById('admin-password');
+            const loginError = document.getElementById('login-error');
+
+            // --- Sidebar Links ---
+            const sidebarLinks = document.querySelectorAll('.sidebar-link');
+
+            // --- Helper Function to Show a Main Page (Login vs Dashboard) ---
+            function showAdminPage(pageId) {
+                if (pageId === 'page-admin-login') {
+                    pageAdminLogin.classList.remove('hidden');
+                    pageAdminDashboardContainer.classList.add('hidden');
+                } else if (pageId === 'page-admin-dashboard-container') {
+                    pageAdminLogin.classList.add('hidden');
+                    pageAdminDashboardContainer.classList.remove('hidden');
+                }
+                window.scrollTo(0, 0);
+            }
+
+            // --- Helper Function to Show Content within Dashboard ---
+            function showAdminContent(contentId) {
+                adminContentPages.forEach(page => page.classList.add('hidden'));
+                const contentToShow = document.getElementById(contentId);
+                if (contentToShow) {
+                    contentToShow.classList.remove('hidden');
+                }
+
+                const activeLink = document.querySelector(`.sidebar-link[data-content="${contentId}"]`);
+                if (activeLink) {
+                    let title = activeLink.querySelector('span').textContent;
+                    if (contentId === 'page-admin-dashboard') title = 'Client Satisfaction Dashboard';
+                    if (contentId === 'page-admin-reports') title = 'Comments';
+                    contentHeaderTitle.textContent = title;
+                }
+
+                sidebarLinks.forEach(link => link.classList.remove('active'));
+                if (activeLink) {
+                    activeLink.classList.add('active');
+                }
+            }
+
+            // --- Event Listeners ---
+            // Theme toggle removed; default is light theme for consistency
+
+            // Login Button
+            btnAdminLogin.addEventListener('click', () => {
+                const username = adminUsernameInput.value;
+                const password = adminPasswordInput.value;
+
+                adminUsernameInput.classList.remove('input-error');
+                adminPasswordInput.classList.remove('input-error');
+                loginError.classList.add('hidden');
+
+                let hasError = false;
+                if (username.trim() === '') {
+                    adminUsernameInput.classList.add('input-error');
+                    hasError = true;
+                }
+                if (password.trim() === '') {
+                    adminPasswordInput.classList.add('input-error');
+                    hasError = true;
+                }
+
+                if (hasError) {
+                    loginError.textContent = 'Please fill in all fields.';
+                    loginError.classList.remove('hidden');
+                    return;
+                }
+
+                // Secure login via API (Sanctum token-based)
+                (async () => {
+                    try {
+                        const res = await fetch('/api/login', {
+                            method: 'POST', headers: { 'Content-Type':'application/json', 'Accept':'application/json' },
+                            body: JSON.stringify({ email: username, password })
+                        });
+                        if (!res.ok) throw new Error('Invalid credentials');
+                        const json = await res.json();
+                        localStorage.setItem('admin_token', json.token);
+                        showAdminPage('page-admin-dashboard-container');
+                        showAdminContent('page-admin-dashboard');
+                        if (typeof loadAdminData === 'function') { loadAdminData(); }
+                        if (!pollTimer) { pollTimer = setInterval(pollNewSubmissions, 10000); }
+                    } catch (e) {
+                        loginError.textContent = 'Invalid username or password.';
+                        loginError.classList.remove('hidden');
+                        adminUsernameInput.classList.add('input-error');
+                        adminPasswordInput.classList.add('input-error');
+                    }
+                })();
+            });
+
+            // Cancel Button (This now navigates back to endUser.html)
+            btnAdminCancel.addEventListener('click', () => {
+                window.location.href = 'endUser.html';
+            });
+
+            // Logout Button
+            btnAdminLogout.addEventListener('click', () => {
+                adminUsernameInput.value = '';
+                adminPasswordInput.value = '';
+                loginError.classList.add('hidden');
+                adminUsernameInput.classList.remove('input-error');
+                adminPasswordInput.classList.remove('input-error');
+                
+                showAdminPage('page-admin-login');
+            });
+
+            // Sidebar Navigation
+            sidebarLinks.forEach(link => {
+                link.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    const contentId = link.getAttribute('data-content');
+                    showAdminContent(contentId);
+                    // Refresh data when switching to dashboard or responses
+                    if (contentId === 'page-admin-dashboard' || contentId === 'page-admin-responses') {
+                        try { await loadAdminData(); } catch {}
+                    }
+                });
+            });
+
+            // --- Live data helpers ---
+            let pieChartInstance = null;
+            let barChartInstance = null;
+            // Filtering/sorting state
+            let allItems = [];
+            let currentViewItems = [];
+            let selectedIds = new Set();
+            let debounceTimer = null;
+            let pollTimer = null; // background polling for new submissions
+            let mapInitialized = false;
+
+            // Toolbar refs
+            const searchInput = document.getElementById('search-input');
+            // Replaced native selects with dropdowns
+            const filterServiceBtn = document.getElementById('filter-service-btn');
+            const filterServiceLabel = document.getElementById('filter-service-label');
+            const filterServiceMenu = document.getElementById('filter-service-menu');
+            const sortSelectBtn = document.getElementById('sort-select-btn');
+            const sortSelectLabel = document.getElementById('sort-select-label');
+            const sortSelectMenu = document.getElementById('sort-select-menu');
+            let filterServiceValue = '';
+            let sortValue = 'date_desc';
+            const resetFilters = document.getElementById('reset-filters');
+            // Choose API base depending on where this page is opened from.
+            // - If served from valenzuela-survey.test, use relative URLs ('')
+            // - Otherwise (e.g., Vite at localhost:5173 or file://), try HTTP then HTTPS Herd domain.
+            const isValenzuelaHost = /(^|\.)valenzuela-survey\.test$/i.test(window.location.hostname);
+            const API_BASES = isValenzuelaHost ? [''] : ['http://valenzuela-survey.test', 'https://valenzuela-survey.test'];
+
+            function authHeaders() {
+                const t = localStorage.getItem('admin_token');
+                const h = { Accept:'application/json' };
+                if (t) h['Authorization'] = 'Bearer ' + t;
+                return h;
+            }
+
+            async function fetchJSON(url) {
+                let lastErr;
+                for (const base of API_BASES) {
+                    try {
+                        // Add cache-busting param to avoid stale data in dev
+                        const sep = url.includes('?') ? '&' : '?';
+                        const bust = `${url}${sep}_ts=${Date.now()}`;
+                        const res = await fetch(base + bust, { headers: authHeaders(), cache: 'no-store' });
+                        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                        return res.json();
+                    } catch (e) {
+                        lastErr = e;
+                    }
+                }
+                throw lastErr || new Error('Request failed');
+            }
+
+            async function apiDelete(url) {
+                let lastErr;
+                for (const base of API_BASES) {
+                    try {
+                        const sep = url.includes('?') ? '&' : '?';
+                        const bust = `${url}${sep}_ts=${Date.now()}`;
+                        const res = await fetch(base + bust, { method: 'DELETE', headers: authHeaders(), cache: 'no-store' });
+                        if (!res.ok && res.status !== 204) throw new Error(`HTTP ${res.status}`);
+                        return true;
+                    } catch (e) {
+                        lastErr = e;
+                    }
+                }
+                throw lastErr || new Error('Request failed');
+            }
+
+            async function apiPost(url, body) {
+                let lastErr;
+                for (const base of API_BASES) {
+                    try {
+                        const sep = url.includes('?') ? '&' : '?';
+                        const bust = `${url}${sep}_ts=${Date.now()}`;
+                        const res = await fetch(base + bust, { method:'POST', headers:{...authHeaders(), 'Content-Type':'application/json'}, body: JSON.stringify(body||{}), cache:'no-store' });
+                        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                        return res.json();
+                    } catch (e) { lastErr = e; }
+                }
+                throw lastErr || new Error('Request failed');
+            }
+
+            function formatDate(d) {
+                try { return new Date(d).toLocaleString(); } catch { return d; }
+            }
+
+            function renderTable(items) {
+                const tbody = document.getElementById('responses-tbody');
+                if (!tbody) return;
+                tbody.innerHTML = '';
+                items.forEach((s, idx) => {
+                    const tr = document.createElement('tr');
+                    tr.setAttribute('data-id', s.id);
+                    tr.className = 'hover:bg-gray-50';
+                    tr.innerHTML = `
+                        <td>
+                            <label>
+                                <input type="checkbox" class="row-checkbox checkbox checkbox-sm" data-id="${s.id}" ${selectedIds.has(String(s.id)) ? 'checked' : ''} />
+                            </label>
+                        </td>
+                        <th>${idx + 1}</th>
+                        <td>${s.service ?? 'N/A'}</td>
+                        <td>${formatDate(s.created_at)}</td>
+                        <td>${s.barangay ?? 'N/A'}</td>
+                        <td class="flex gap-2">
+                            <button class="btn btn-ghost btn-sm rounded-full btn-view-response" title="View" data-id="${s.id}"><i class="ph ph-eye"></i></button>
+                            <button class="btn btn-ghost btn-sm rounded-full btn-delete-response text-error" title="Delete" data-id="${s.id}"><i class="ph ph-trash"></i></button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+
+                    // Open details when clicking the row (except on interactive controls)
+                    tr.addEventListener('click', async (e) => {
+                        const interactive = e.target.closest('button, input, label, a, i');
+                        if (interactive) return; // ignore clicks on buttons/inputs
+                        try {
+                            const id = s.id;
+                            const survey = await fetchJSON(`/api/surveys/${id}`);
+                            fillModal(survey);
+                            document.getElementById('modal-response-details').showModal();
+                        } catch {}
+                    });
+                });
+
+                tbody.querySelectorAll('.btn-view-response').forEach(btn => {
+                    btn.addEventListener('click', async () => {
+                        const id = btn.getAttribute('data-id');
+                        const survey = await fetchJSON(`/api/surveys/${id}`);
+                        fillModal(survey);
+                        document.getElementById('modal-response-details').showModal();
+                    });
+                });
+
+                // Handle row delete buttons
+                tbody.querySelectorAll('.btn-delete-response').forEach(btn => {
+                    btn.addEventListener('click', async () => {
+                        const id = btn.getAttribute('data-id');
+                        const ok = await confirmAction('Delete Response', 'Delete this response? You can click the toast to Undo.');
+                        if (!ok) return;
+                        try {
+                            await apiDelete(`/api/surveys/${id}`);
+                            if (typeof loadAdminData === 'function') { await loadAdminData(); }
+                            selectedIds.delete(String(id));
+                            // Offer Undo via toast click
+                            showToast('Response deleted. Click to undo.', 'success', {
+                                title: 'Deleted', timeout: 5000, onClick: async () => {
+                                    try {
+                                        await apiPost(`/api/surveys/${id}/restore`);
+                                        if (typeof loadAdminData === 'function') { await loadAdminData(); }
+                                        showToast('Response restored.', 'success');
+                                    } catch (e) {
+                                        showToast('Failed to restore.', 'error');
+                                    }
+                                }
+                            });
+                        } catch (e) {
+                            showToast('Failed to delete response: ' + (e?.message || 'Unknown error'), 'error');
+                        }
+                    });
+                });
+
+                // Wire up select-all and per-row checkbox state
+                const selectAll = document.getElementById('select-all');
+                const rowCbs = Array.from(tbody.querySelectorAll('.row-checkbox'));
+                const btnDeleteSelected = document.getElementById('btn-delete-selected');
+                const btnClearSelection = document.getElementById('btn-clear-selection');
+                const selectedCountEl = document.getElementById('selected-count');
+                function updateBulkState() {
+                    // Sync selectedIds from current checkboxes
+                    rowCbs.forEach(cb => {
+                        const id = String(cb.getAttribute('data-id'));
+                        if (cb.checked) selectedIds.add(id); else selectedIds.delete(id);
+                    });
+                    const anyChecked = selectedIds.size > 0;
+                    if (btnDeleteSelected) {
+                        btnDeleteSelected.disabled = !anyChecked;
+                    }
+                    if (btnClearSelection) {
+                        btnClearSelection.disabled = !anyChecked;
+                    }
+                    if (selectedCountEl) {
+                        if (selectedIds.size > 0) {
+                            selectedCountEl.textContent = `${selectedIds.size} selected`;
+                            selectedCountEl.classList.remove('hidden');
+                        } else {
+                            selectedCountEl.textContent = '';
+                            selectedCountEl.classList.add('hidden');
+                        }
+                    }
+                    if (selectAll) {
+                        const allChecked = rowCbs.length > 0 && rowCbs.every(cb => cb.checked);
+                        selectAll.checked = allChecked;
+                        selectAll.indeterminate = !allChecked && anyChecked;
+                    }
+                }
+                if (selectAll) {
+                    selectAll.onchange = () => {
+                        const checked = !!selectAll.checked;
+                        rowCbs.forEach(cb => { cb.checked = checked; });
+                        updateBulkState();
+                    };
+                }
+                rowCbs.forEach(cb => cb.addEventListener('change', updateBulkState));
+                updateBulkState();
+
+                if (btnClearSelection) {
+                    btnClearSelection.onclick = () => {
+                        selectedIds.clear();
+                        rowCbs.forEach(cb => { cb.checked = false; });
+                        updateBulkState();
+                    };
+                }
+            }
+
+            // ---------------- Barangay Map Analytics -----------------
+            let mapInstance = null;
+            async function initBarangayMap() {
+                if (mapInitialized) return; // only once
+                const mapEl = document.getElementById('map-container');
+                const hintEl = document.getElementById('map-hint');
+                const errEl = document.getElementById('map-error');
+                if (!mapEl) return;
+
+                try {
+                    // Fetch GeoJSON boundaries
+                    const gjRes = await fetch('/data/valenzuela-barangays.geojson', { cache: 'no-store' });
+                    if (!gjRes.ok) throw new Error('geojson-missing');
+                    const gj = await gjRes.json();
+
+                    // Fetch metrics (protected)
+                    const metricsRes = await fetch('/api/surveys/geo/metrics', { headers: authHeaders(), cache:'no-store' });
+                    if (!metricsRes.ok) throw new Error('metrics-failed');
+                    const metrics = await metricsRes.json();
+
+                    // Initialize map
+                    mapInstance = L.map(mapEl, { zoomControl: true, scrollWheelZoom: true });
+                    // Neutral baselayer
+                    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+                        attribution: '&copy; OpenStreetMap contributors & Carto',
+                        maxZoom: 20
+                    }).addTo(mapInstance);
+
+                    const baseStyle = { color: '#4b5563', weight: 1, fillColor: '#a5b4fc', fillOpacity: 0.35 };
+
+                    // Choropleth scale for Participation Rate (%)
+                    const breaks = [0, 1, 2, 5, 10, 20, 50];
+                    const colors = ['#eef2ff','#c7d2fe','#a5b4fc','#818cf8','#6366f1','#4f46e5','#4338ca'];
+                    function colorForRate(pct) {
+                        if (pct == null || isNaN(pct)) return '#a5b4fc';
+                        for (let i = colors.length-1; i >= 0; i--) {
+                            if (pct >= breaks[i]) return colors[i];
+                        }
+                        return colors[0];
+                    }
+
+                    function getBgyName(feat) {
+                        const p = feat && feat.properties || {};
+                        return p.name || p.Name || p.barangay || p.Barangay || p.BRGY || 'Unknown';
+                    }
+
+                    function tooltipHtml(name, m) {
+                        const rate = (m && m.participation_rate != null) ? (Number(m.participation_rate).toFixed(1) + '%') : '—';
+                        const avg = (m && m.avg_score != null) ? (Number(m.avg_score).toFixed(1) + ' / 5.0') : '—';
+                        const top = (m && m.top_complaint) ? (String(m.top_complaint).replace(/\b\w/g, c => c.toUpperCase())) : '—';
+                        const total = (m && m.total_submissions != null) ? m.total_submissions : '—';
+                        return `
+                            <div class="p-1">
+                                <div class="font-semibold mb-1">${name}</div>
+                                <div class="text-xs"><span class="font-medium">Participation Rate:</span> ${rate}</div>
+                                <div class="text-xs"><span class="font-medium">Avg. Health Score:</span> ${avg}</div>
+                                <div class="text-xs"><span class="font-medium">Top Complaint:</span> ${top}</div>
+                                <div class="text-xs"><span class="font-medium">Total Submissions:</span> ${total}</div>
+                            </div>`;
+                    }
+
+                    const layer = L.geoJSON(gj, {
+                        style: (feature) => {
+                            const name = getBgyName(feature);
+                            const keyCandidates = [name, (name||'').toUpperCase(), (name||'').toLowerCase()];
+                            let m = null; for (const k of keyCandidates) { if (k && metrics[k]) { m = metrics[k]; break; } }
+                            const fill = colorForRate(m?.participation_rate);
+                            return { ...baseStyle, fillColor: fill };
+                        },
+                        onEachFeature: (feature, lyr) => {
+                            const name = getBgyName(feature);
+                            const keyCandidates = [name, (name||'').toUpperCase(), (name||'').toLowerCase()];
+                            let m = null; for (const k of keyCandidates) { if (k && metrics[k]) { m = metrics[k]; break; } }
+                            lyr.bindTooltip(() => tooltipHtml(name, m), { sticky: true, direction: 'top', opacity: 0.98, className: 'val-tooltip' });
+                            lyr.on('mouseover', () => { lyr.setStyle({ fillOpacity: 0.55 }); });
+                            lyr.on('mouseout', () => { lyr.setStyle({ fillOpacity: baseStyle.fillOpacity }); });
+                        }
+                    }).addTo(mapInstance);
+
+                    try { mapInstance.fitBounds(layer.getBounds(), { padding: [20,20] }); } catch {}
+                    // Add a legend for Participation Rate
+                    const legend = L.control({ position: 'bottomright' });
+                    legend.onAdd = function() {
+                        const div = L.DomUtil.create('div', 'val-legend');
+                        const rows = [];
+                        rows.push('<div class="title">Participation Rate</div>');
+                        for (let i = 0; i < breaks.length; i++) {
+                            const from = breaks[i];
+                            const to = breaks[i+1];
+                            const label = to !== undefined ? `${from}–${to}%` : `${from}%+`;
+                            rows.push(`<div class="row"><span class="swatch" style="background:${colors[i]}"></span>${label}</div>`);
+                        }
+                        div.innerHTML = rows.join('');
+                        return div;
+                    };
+                    legend.addTo(mapInstance);
+                    if (hintEl) hintEl.classList.remove('hidden');
+                    mapInitialized = true;
+                } catch (e) {
+                    if (errEl) errEl.classList.remove('hidden');
+                }
+            }
+
+            function fillModal(s) {
+                const modal = document.getElementById('modal-response-details');
+                if (!modal) return;
+                const box = modal.querySelector('.modal-box');
+                if (!box) return;
+
+                const detailsHtml = `
+                    <h3 class=\"font-bold text-2xl mb-4\">Response Details</h3>
+                    <div class=\"space-y-2\">
+                        <p><strong>Name:</strong> ${s.name ?? 'Anonymous'}</p>
+                        <p><strong>Age:</strong> ${s.age ?? '—'}</p>
+                        <p><strong>Barangay:</strong> ${s.barangay ?? '—'}</p>
+                        <p><strong>Service:</strong> ${s.service ?? '—'}</p>
+                        <p><strong>Date:</strong> ${formatDate(s.created_at)}</p>
+                        <p><strong>Email:</strong> ${s.email ?? '—'}</p>
+                        <p><strong>Phone:</strong> ${s.phone ?? '—'}</p>
+                    </div>
+                    <div class=\"divider\"></div>
+                    <h4 class=\"font-bold text-xl mb-2\">Ratings:</h4>
+                    <ul class=\"list-disc list-inside space-y-1\">${(s.ratings || []).map(r => `<li>${r.question_id}: ${r.value}</li>`).join('')}</ul>
+                    <div class=\"divider\"></div>
+                    <p class=\"text-gray-700\"><strong>Comments:</strong> ${s.comments ?? ''}</p>
+                    <div class=\"modal-action\">
+                        <form method=\"dialog\">
+                            <button class=\"btn btn-primary rounded-full px-6\">Close</button>
+                        </form>
+                    </div>
+                `;
+                box.innerHTML = detailsHtml;
+            }
+
+            function renderStats(stats) {
+                const statsTiles = document.querySelectorAll('#page-admin-dashboard .stat');
+                // Tile 1: Overall Satisfaction (percentage derived from 1..5 average)
+                if (statsTiles.length >= 1) {
+                    const total = Number(stats.total_responses ?? 0);
+                    const overall = Number(stats.overall_average ?? 0); // 1..5
+                    const pct = overall ? Math.round(((overall - 1) / 4) * 100) : 0; // 0..100
+                    const latest = stats.latest_response_at ? `Based on ${total} responses. Latest: ${formatDate(stats.latest_response_at)}` : `Based on ${total} responses`;
+                    statsTiles[0].querySelector('.stat-title').textContent = 'Overall Satisfaction';
+                    statsTiles[0].querySelector('.stat-value').textContent = `${pct}%`;
+                    statsTiles[0].querySelector('.stat-desc').textContent = latest;
+                }
+                // Tile 2: Top Rated Category
+                if (statsTiles.length >= 2) {
+                    const qMap = [
+                        ['A1','Staff Courtesy'],
+                        ['A2','Process Simplicity'],
+                        ['A3','Timeliness'],
+                        ['A4','Requirements Clarity'],
+                        ['B1','Cleanliness'],
+                        ['B2','Waiting Comfort'],
+                        ['C1','Met Expectations'],
+                        ['C2','Overall Quality'],
+                        ['C3','Would Recommend'],
+                    ];
+                    let top = { label: 'N/A', val: 0 };
+                    for (const [k, label] of qMap) {
+                        const v = Number(stats.question_averages?.[k] || 0);
+                        if (v > top.val) top = { label, val: v };
+                    }
+                    statsTiles[1].querySelector('.stat-title').textContent = 'Top Rated Category';
+                    statsTiles[1].querySelector('.stat-value').textContent = top.label;
+                    statsTiles[1].querySelector('.stat-desc').textContent = top.val ? `${top.val.toFixed(2)} average rating` : '—';
+                }
+                // Tile 3: Needs Improvement (lowest average)
+                if (statsTiles.length >= 3) {
+                    const qMap = [
+                        ['A1','Staff Courtesy'],
+                        ['A2','Process Simplicity'],
+                        ['A3','Timeliness'],
+                        ['A4','Requirements Clarity'],
+                        ['B1','Cleanliness'],
+                        ['B2','Waiting Comfort'],
+                        ['C1','Met Expectations'],
+                        ['C2','Overall Quality'],
+                        ['C3','Would Recommend'],
+                    ];
+                    let low = { label: 'N/A', val: Infinity };
+                    for (const [k, label] of qMap) {
+                        const v = Number(stats.question_averages?.[k] || 0);
+                        if (v && v < low.val) low = { label, val: v };
+                    }
+                    statsTiles[2].querySelector('.stat-title').textContent = 'Needs Improvement';
+                    statsTiles[2].querySelector('.stat-value').textContent = low.label;
+                    statsTiles[2].querySelector('.stat-desc').textContent = low.val !== Infinity ? `${low.val.toFixed(2)} average rating` : '—';
+                }
+
+                const order = ['Very Dissatisfied', 'Dissatisfied', 'Neutral', 'Satisfied', 'Very Satisfied'];
+                const counts = order.map(k => Number(stats.rating_breakdown?.[k] || 0));
+                const pieCtx = document.getElementById('pieChart');
+                if (pieCtx) {
+                    // Guard if Chart.js failed to load
+                    if (typeof Chart === 'undefined') {
+                        const parent = pieCtx.parentElement;
+                        if (parent && !parent.querySelector('.chart-error')) {
+                            const msg = document.createElement('div');
+                            msg.className = 'chart-error text-sm text-red-500 mt-2';
+                            msg.textContent = 'Chart.js not loaded. Please check your internet connection or CDN availability.';
+                            parent.appendChild(msg);
+                        }
+                        return;
+                    }
+
+                    if (pieChartInstance) pieChartInstance.destroy();
+                    pieChartInstance = new Chart(pieCtx, {
+                        type: 'pie',
+                        data: {
+                            labels: order,
+                            datasets: [{
+                                label: 'Rating Breakdown',
+                                data: counts,
+                                backgroundColor: ['#8b5cf6','#ec4899','#eab308','#22c55e','#3b82f6'],
+                                borderColor: '#ffffff',
+                                borderWidth: 2
+                            }]
+                        },
+                        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 20 } } } }
+                    });
+                }
+
+                // Live bar chart for per-question averages (1..5 scale)
+                const qMap = [
+                    ['A1','Staff Courtesy'],
+                    ['A2','Process Simplicity'],
+                    ['A3','Timeliness'],
+                    ['A4','Requirements Clarity'],
+                    ['B1','Cleanliness'],
+                    ['B2','Waiting Comfort'],
+                    ['C1','Met Expectations'],
+                    ['C2','Overall Quality'],
+                    ['C3','Would Recommend'],
+                ];
+                const labels = qMap.map(([k, label]) => label);
+                const values = qMap.map(([k]) => Number(stats.question_averages?.[k] || 0));
+                const barCanvas = document.getElementById('barChart');
+                if (barCanvas) {
+                    if (typeof Chart === 'undefined') {
+                        const parent = barCanvas.parentElement;
+                        if (parent && !parent.querySelector('.chart-error')) {
+                            const msg = document.createElement('div');
+                            msg.className = 'chart-error text-sm text-red-500 mt-2';
+                            msg.textContent = 'Chart.js not loaded. Please check your internet connection or CDN availability.';
+                            parent.appendChild(msg);
+                        }
+                        return;
+                    }
+                    if (barChartInstance) barChartInstance.destroy();
+                    barChartInstance = new Chart(barCanvas, {
+                        type: 'bar',
+                        data: {
+                            labels,
+                            datasets: [{
+                                label: 'Avg (1-5)',
+                                data: values,
+                                backgroundColor: '#3b82f6',
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                y: { suggestedMin: 1, suggestedMax: 5, ticks: { stepSize: 1 } }
+                            },
+                            plugins: { legend: { display: false } }
+                        }
+                    });
+                }
+
+                // Fill Initial Findings and Recommendations
+                try {
+                    const findingsEl = document.getElementById('findings-text');
+                    const recosEl = document.getElementById('recos-list');
+                    const total = Number(stats.total_responses || 0);
+                    const overall = Number(stats.overall_average || 0);
+                    const pct = overall ? Math.round(((overall - 1) / 4) * 100) : 0;
+                    // Determine top and low category
+                    const qMap = [
+                        ['A1','Staff Courtesy'],['A2','Process Simplicity'],['A3','Timeliness'],['A4','Requirements Clarity'],
+                        ['B1','Cleanliness'],['B2','Waiting Comfort'],['C1','Met Expectations'],['C2','Overall Quality'],['C3','Would Recommend'],
+                    ];
+                    let top = { k: null, label: 'N/A', val: 0 };
+                    let low = { k: null, label: 'N/A', val: Infinity };
+                    for (const [k, label] of qMap) {
+                        const v = Number(stats.question_averages?.[k] || 0);
+                        if (v > top.val) top = { k, label, val: v };
+                        if (v && v < low.val) low = { k, label, val: v };
+                    }
+                    if (findingsEl) {
+                        const sentence = total > 0
+                            ? `Overall satisfaction is approximately ${pct}% based on ${total} responses. Strongest area: ${top.label} (${top.val.toFixed(2)}). Area needing attention: ${low.label}${low.val!==Infinity?` (${low.val.toFixed(2)})`:''}.`
+                            : 'No responses yet. Insights will appear here once data is available.';
+                        findingsEl.textContent = sentence;
+                    }
+                    if (recosEl) {
+                        const items = [];
+                        if (low.val !== Infinity) {
+                            items.push(`Focus on improving ${low.label}. Consider quick wins (process review, staff briefing, or clearer signage).`);
+                        }
+                        if ((stats.rating_breakdown?.['Very Dissatisfied'] || 0) > 0) {
+                            items.push('Investigate specific negative cases from comments and reach out for resolution where appropriate.');
+                        }
+                        if ((stats.rating_breakdown?.['Very Satisfied'] || 0) > (stats.rating_breakdown?.['Very Dissatisfied'] || 0)) {
+                            items.push('Amplify what works in high-performing areas (capture best practices and duplicate across offices).');
+                        }
+                        if (items.length === 0) items.push('No specific recommendations at this time. Continue monitoring trends.');
+                        recosEl.innerHTML = items.map(t => `<li>${escapeHtml(t)}</li>`).join('');
+                    }
+                } catch {}
+            }
+
+            function populateServiceOptions(items) {
+                if (!filterServiceMenu) return;
+                const services = Array.from(new Set(items.map(i => i.service).filter(Boolean))).sort((a,b)=>a.localeCompare(b));
+                filterServiceMenu.innerHTML = '<li><a data-value="">All services</a></li>' + services.map(s => `<li><a data-value="${s}">${s}</a></li>`).join('');
+                filterServiceMenu.querySelectorAll('a[data-value]').forEach(a => {
+                    a.addEventListener('click', () => {
+                        filterServiceValue = a.getAttribute('data-value') || '';
+                        filterServiceLabel.textContent = filterServiceValue || 'All services';
+                        applyFiltersSort();
+                    });
+                });
+            }
+
+            function applyFiltersSort() {
+                let items = allItems.slice();
+                const q = (searchInput?.value || '').trim().toLowerCase();
+                const svc = filterServiceValue || '';
+                const sort = sortValue || 'date_desc';
+
+                if (q) {
+                    items = items.filter(s => [s.name, s.service, s.barangay, s.email, s.comments]
+                        .map(v => (v || '').toString().toLowerCase())
+                        .some(v => v.includes(q))
+                    );
+                }
+                if (svc) {
+                    items = items.filter(s => (s.service || '') === svc);
+                }
+
+                const cmpStr = (a,b) => (a||'').toString().localeCompare((b||'').toString(), undefined, { sensitivity:'base' });
+                if (sort === 'date_desc') items.sort((a,b)=> new Date(b.created_at) - new Date(a.created_at));
+                if (sort === 'date_asc') items.sort((a,b)=> new Date(a.created_at) - new Date(b.created_at));
+                if (sort === 'service_az') items.sort((a,b)=> cmpStr(a.service,b.service));
+                if (sort === 'service_za') items.sort((a,b)=> cmpStr(b.service,a.service));
+                if (sort === 'barangay_az') items.sort((a,b)=> cmpStr(a.barangay,b.barangay));
+                if (sort === 'barangay_za') items.sort((a,b)=> cmpStr(b.barangay,a.barangay));
+
+                currentViewItems = items;
+                renderTable(currentViewItems);
+            }
+
+            function hookFilterEvents() {
+                if (searchInput) {
+                    searchInput.addEventListener('input', () => {
+                        clearTimeout(debounceTimer);
+                        debounceTimer = setTimeout(applyFiltersSort, 200);
+                    });
+                }
+                sortSelectMenu?.querySelectorAll('a[data-value]')?.forEach(a => {
+                    a.addEventListener('click', () => {
+                        sortValue = a.getAttribute('data-value') || 'date_desc';
+                        sortSelectLabel.textContent = a.textContent;
+                        applyFiltersSort();
+                    });
+                });
+                if (resetFilters) resetFilters.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    if (searchInput) searchInput.value = '';
+                    filterServiceValue = '';
+                    sortValue = 'date_desc';
+                    filterServiceLabel.textContent = 'All services';
+                    sortSelectLabel.textContent = 'Date: Newest first';
+                    applyFiltersSort();
+                });
+            }
+
+            async function loadAdminData() {
+                try {
+                    // Show lightweight skeletons while loading
+                    const tbody = document.getElementById('responses-tbody');
+                    if (tbody) {
+                        tbody.innerHTML = Array.from({ length: 5 }).map(() => `
+                            <tr>
+                                <td><div class="skeleton h-4 w-6"></div></td>
+                                <td><div class="skeleton h-4 w-40"></div></td>
+                                <td><div class="skeleton h-4 w-48"></div></td>
+                                <td><div class="skeleton h-4 w-28"></div></td>
+                                <td><div class="skeleton h-8 w-16 rounded-full"></div></td>
+                            </tr>
+                        `).join('');
+                    }
+                    const [list, stats] = await Promise.all([
+                        fetchJSON('/api/surveys?per_page=100'),
+                        fetchJSON('/api/surveys/stats')
+                    ]);
+                    const items = Array.isArray(list) ? list : (list.data || []);
+                    allItems = items;
+                    populateServiceOptions(allItems);
+                    hookFilterEvents();
+                    applyFiltersSort();
+                    renderStats(stats);
+                    // Initialize map after charts/stats are ready (once)
+                    try { await initBarangayMap(); } catch {}
+                    // Initialize lastSeenId for new-submission polling
+                    const maxId = Math.max(0, ...items.map(i => Number(i.id) || 0));
+                    if (Number.isFinite(maxId)) {
+                        if (lastSeenId === null) lastSeenId = maxId; else lastSeenId = Math.max(lastSeenId, maxId);
+                    }
+                } catch (e) {
+                    console.error('Failed to load admin data', e);
+                    const tbody = document.getElementById('responses-tbody');
+                    if (tbody) {
+                            const msg = (e && e.message) ? e.message : 'Unknown error';
+                            tbody.innerHTML = `<tr><td colspan="5" class="text-center text-red-500">Failed to load responses (${msg}).</td></tr>`;
+                    }
+                    const pieCtx = document.getElementById('pieChart');
+                    if (pieCtx) {
+                        const parent = pieCtx.parentElement;
+                        if (parent && !parent.querySelector('.chart-error')) {
+                            const msg = document.createElement('div');
+                            msg.className = 'chart-error text-sm text-red-500 mt-2';
+                                msg.textContent = `Failed to load chart data (${(e && e.message) ? e.message : 'Unknown error'}).`;
+                            parent.appendChild(msg);
+                        }
+                    }
+                }
+            }
+
+            function renderReportsFrom(items) {
+                const container = document.getElementById('reports-list');
+                const empty = document.getElementById('reports-empty');
+                if (!container || !empty) return;
+                // Get only those with non-empty comments
+                const comments = items
+                    .filter(s => (s.comments || '').trim().length > 0)
+                    .sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+
+                container.innerHTML = '';
+                if (comments.length === 0) {
+                    empty.classList.remove('hidden');
+                    return;
+                }
+                empty.classList.add('hidden');
+
+                comments.forEach(s => {
+                    const name = s.name || 'Anonymous';
+                    const when = formatDate(s.created_at);
+                    const service = s.service || 'N/A';
+                    const card = document.createElement('div');
+                    card.className = 'bg-white rounded-lg shadow-lg border-l-4 border-cyan-500 overflow-hidden';
+                    card.innerHTML = `
+                        <div class="p-6">
+                            <p class="text-lg font-semibold text-gray-800 mb-2">${escapeHtml(s.comments)}</p>
+                            <p class="text-sm text-gray-600">${escapeHtml(name)} • ${escapeHtml(when)} | ${escapeHtml(service)}</p>
+                        </div>`;
+                    container.appendChild(card);
+                });
+            }
+
+            async function loadReports() {
+                try {
+                    const list = await fetchJSON('/api/surveys?per_page=200');
+                    const items = Array.isArray(list) ? list : (list.data || []);
+                    renderReportsFrom(items);
+                } catch (e) {
+                    console.error('Failed to load reports', e);
+                }
+            }
+
+            // Simple HTML escaper to avoid injection in comments display
+            function escapeHtml(str) {
+                return String(str).replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[s]));
+            }
+
+            // Refresh data when clicking Dashboard
+            const linkDashboard = document.getElementById('link-dashboard');
+            if (linkDashboard) {
+                linkDashboard.addEventListener('click', () => {
+                    if (typeof loadAdminData === 'function') { loadAdminData(); }
+                });
+            }
+            const linkResponses = document.getElementById('link-responses');
+            if (linkResponses) {
+                linkResponses.addEventListener('click', () => {
+                    if (typeof loadAdminData === 'function') { loadAdminData(); }
+                });
+            }
+            const linkReports = document.getElementById('link-reports');
+            if (linkReports) {
+                linkReports.addEventListener('click', () => {
+                    if (typeof loadReports === 'function') { loadReports(); }
+                });
+            }
+
+            // --- Initial State ---
+            showAdminPage('page-admin-login');
+
+            // Bulk delete selected removed as requested (button not present)
+
+            const exportCsvEl = document.getElementById('export-csv');
+            const exportPdfEl = document.getElementById('export-pdf');
+            exportCsvEl?.addEventListener('click', async () => {
+                try {
+                    const res = await fetch('/api/surveys/export/csv', { headers: authHeaders() });
+                    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                    const blob = await res.blob();
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url; a.download = `responses_${new Date().toISOString().slice(0,10)}.csv`;
+                    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                } catch (e) {
+                    showToast('Failed to export CSV.', 'error');
+                }
+            });
+
+            exportPdfEl?.addEventListener('click', async () => {
+                try {
+                    const res = await fetch('/api/surveys/export/pdf', { headers: authHeaders() });
+                    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                    const blob = await res.blob();
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url; a.download = `survey_analytics_${new Date().toISOString().slice(0,10)}.pdf`;
+                    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                } catch (e) {
+                    showToast('Failed to export PDF.', 'error');
+                }
+            });
+
+            // client-side CSV builder removed in favor of backend export
+
+            // Reusable confirmation modal as a Promise
+            function confirmAction(title, message) {
+                return new Promise(resolve => {
+                    const dlg = document.getElementById('modal-confirm');
+                    const t = document.getElementById('confirm-title');
+                    const m = document.getElementById('confirm-message');
+                    const yes = document.getElementById('confirm-yes');
+                    const cancel = document.getElementById('confirm-cancel');
+                    if (t) t.textContent = title || 'Confirm';
+                    if (m) m.textContent = message || 'Are you sure?';
+                    const cleanup = () => {
+                        yes.onclick = null;
+                        cancel.onclick = null;
+                        dlg.close();
+                    };
+                    yes.onclick = () => { cleanup(); resolve(true); };
+                    cancel.onclick = () => { cleanup(); resolve(false); };
+                    dlg.showModal();
+                });
+            }
+
+            // Toast helper styled per the provided design (title + message + colored bar)
+            // Usage: showToast('Saved successfully','success',{ title:'Success!', timeout:3000, onClick: fn })
+            function showToast(message, type = 'info', opts = {}) {
+                const { title, timeout = 2000, onClick } = opts || {};
+                const defaultTitle = type === 'success' ? 'Success!' : type === 'error' ? 'Error!' : type === 'warning' ? 'Warning!' : 'Help!';
+                let container = document.querySelector('.toast-container');
+                if (!container) {
+                    container = document.createElement('div');
+                    container.className = 'toast-container';
+                    document.body.appendChild(container);
+                }
+                const card = document.createElement('div');
+                const variant = type === 'success' ? 'toast-success' : type === 'error' ? 'toast-error' : type === 'warning' ? 'toast-warning' : 'toast-info';
+                card.className = `toast-card ${variant}` + (onClick ? ' toast-clickable' : '');
+                card.innerHTML = `
+                    <div class="bar"></div>
+                    <div class="toast-icon">${iconForType(type)}</div>
+                    <div class="grow">
+                        <div class="toast-title">${escapeHtml(title || defaultTitle)}</div>
+                        <div class="toast-msg">${escapeHtml(message || '')}</div>
+                    </div>
+                    <div class="toast-close" aria-label="Close">&times;</div>
+                `;
+                const cleanup = () => { if (card && card.parentElement) card.parentElement.removeChild(card); };
+                const timer = setTimeout(cleanup, timeout);
+                card.querySelector('.toast-close').addEventListener('click', (e) => { e.stopPropagation(); clearTimeout(timer); cleanup(); });
+                if (onClick) {
+                    card.addEventListener('click', () => { clearTimeout(timer); cleanup(); try { onClick(); } catch {} });
+                }
+                container.appendChild(card);
+            }
+
+            function iconForType(type) {
+                // Using simple characters to avoid extra icon dependencies; Phosphor icons already loaded but we keep it simple for reliability
+                if (type === 'success') return '<i class="ph ph-check"></i>';
+                if (type === 'error') return '<i class="ph ph-x"></i>';
+                if (type === 'warning') return '<i class="ph ph-warning-circle"></i>';
+                return '<i class="ph ph-question"></i>';
+            }
+
+            // Navigate to Responses and open the record by id, then highlight it
+            async function navigateToRecord(id) {
+                showAdminContent('page-admin-responses');
+                try {
+                    await loadAdminData();
+                } catch {}
+                const tbody = document.getElementById('responses-tbody');
+                if (!tbody) return;
+                const row = tbody.querySelector(`tr[data-id="${cssEsc(String(id))}"]`);
+                if (row) {
+                    row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    row.classList.add('ring', 'ring-2', 'ring-cyan-400');
+                    setTimeout(() => row.classList.remove('ring', 'ring-2', 'ring-cyan-400'), 1500);
+                    // Also open details modal
+                    try {
+                        const survey = await fetchJSON(`/api/surveys/${id}`);
+                        fillModal(survey);
+                        document.getElementById('modal-response-details').showModal();
+                    } catch {}
+                }
+            }
+
+            // Poll for new submissions and notify admin
+            let lastSeenId = null;
+            function cssEsc(str){
+                try { return CSS.escape(str); } catch { return String(str).replace(/[^a-zA-Z0-9_-]/g, '\\$&'); }
+            }
+            async function pollNewSubmissions() {
+                try {
+                    const list = await fetchJSON('/api/surveys?per_page=1');
+                    const items = Array.isArray(list) ? list : (list.data || []);
+                    if (items.length === 0) return;
+                    const latest = items[0];
+                    const newId = Number(latest.id);
+                    if (Number.isFinite(newId)) {
+                        if (lastSeenId === null) {
+                            lastSeenId = newId; // initialize without notifying
+                        } else if (newId > lastSeenId) {
+                            lastSeenId = newId;
+                            const who = latest.name ? `${latest.name}` : 'New respondent';
+                            const svc = latest.service ? ` — ${latest.service}` : '';
+                            showToast(`${who}${svc}. Click to open.`, 'success', {
+                                title: 'New submission!',
+                                onClick: () => navigateToRecord(newId),
+                                timeout: 8000,
+                            });
+                        }
+                    }
+                } catch (e) {
+                    // swallow errors to keep polling harmless in background
+                }
+            }
+
+        }); // --- End of DOMContentLoaded ---
+    </script>
+</body>
+</html>

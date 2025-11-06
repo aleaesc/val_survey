@@ -1,0 +1,1263 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Valenzuela Client Satisfaction Survey</title>
+    
+    <!-- 1. Include Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- 2. Include daisyUI -->
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" rel="stylesheet" type="text/css" />
+
+    <!-- 3. Use Inter font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Icons for FAB -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- Animations removed per accessibility feedback (no AOS, no confetti) -->
+    
+    <style>
+        /* Apply Inter font as default */
+    body { font-family: 'Inter', sans-serif; background-color: #f0f2f5; color: #111827; }
+        
+        .text-brand-blue {
+            color: #0d3a6b;
+        }
+        .bg-brand-blue {
+            background-color: #0d3a6b;
+        }
+        /* Reduce motion and remove subtle animations on selection */
+        .service-button,
+        .rating-button {
+            transition: none !important;
+        }
+        .service-button.selected {
+            border-color: #60a5fa;
+            box-shadow: 0 0 0 2px #60a5fa;
+            background-color: #eff6ff;
+        }
+        .rating-button.selected {
+            border-color: #60a5fa;
+            box-shadow: 0 0 0 2px #60a5fa;
+            background-color: #eff6ff;
+            /* Remove transform scale to avoid motion */
+            transform: none !important;
+        }
+
+    /* Floating Action Button (FAB) - bottom right with quarter-circle expansion */
+    .fab { position: fixed; right: 1.5rem; bottom: 1.5rem; z-index: 50; width: 4rem; height: 4rem; }
+    .fab > .btn, .fab > .fab-main-action, .fab > a { position: absolute; bottom: 0; right: 0; }
+    .fab .fab-toggle { display: inline-flex; }
+    .fab .fab-action { opacity: 0; transform: translate(0,0) scale(0.8); transition: transform 180ms ease, opacity 180ms ease; }
+    /* Open state: via class or focus-within as a fallback for keyboard */
+    /* Single-toggle design: the same button opens and closes; no separate close icon */
+    .fab.open .fab-action, .fab:focus-within .fab-action { opacity: 1; transform: translate(0,0) scale(1); }
+    /* Place two action buttons in a quarter-circle (left and up from the main) */
+    .fab .fab-action.ai { transform: translate(0,0) scale(0.8); }
+    .fab.open .fab-action.ai, .fab:focus-within .fab-action.ai { transform: translate(-84px, 0) scale(1); }
+    .fab .fab-action.fb { transform: translate(0,0) scale(0.8); }
+    .fab.open .fab-action.fb, .fab:focus-within .fab-action.fb { transform: translate(0, -84px) scale(1); }
+    .fab .fab-action.faq { transform: translate(0,0) scale(0.8); }
+    .fab.open .fab-action.faq, .fab:focus-within .fab-action.faq { transform: translate(-72px, -72px) scale(1); }
+    </style>
+</head>
+<body>
+
+    <!-- 
+    ============================================================
+    PAGE 1: WELCOME (SURVEY)
+    ============================================================
+    -->
+    <div id="page-welcome" class="">
+        <div 
+            class="relative min-h-screen flex flex-col lg:flex-row bg-cover bg-center"
+            style="background-image: url('welcomebg.jpg');"
+        >
+            <div class="relative w-full lg:w-7/12 text-white p-8 sm:p-16 flex flex-col z-10">
+                <div class="absolute inset-0"></div>
+                <div class="relative z-10 flex-grow flex flex-col justify-center py-12">
+                    <h1 class="text-7xl sm:text-7xl md:text-[7rem] font-extrabold mb-4 leading-tight" style=" color: #01387b; text-shadow: 2px 2px 8px rgba(0,0,0,0);">
+                     WELCOME
+                    </h1>
+                    <p class="text-lg sm:text-xl mb-8 max-w-md" style=" color: #01387b; text-shadow: 1px 1px 6px rgba(0,0,0,0);">
+                        Your feedback helps us improve our public services. Please take a moment to complete our survey.
+                    </p>
+                    
+                    <button id="btn-take-survey" class="btn btn-primary btn-lg w-full sm:w-auto self-start rounded-full px-10">
+                        Take Survey
+                    </button>
+                </div>
+                
+                <div class="relative z-10 pt-8">
+                    <!-- UPDATED: This is now a simple link to the admin file -->
+                    <a href="adminfrontend.html" class="text-sm font-semibold tracking-wider hover:underline" style="color: black; text-shadow: 1px 1px 6px rgba(0,0,0,0);">
+                        LOGIN ADMIN
+                    </a>
+                </div>
+            </div>
+            <div class="hidden lg:block w-full lg:w-5/12">
+            </div>
+        </div>
+    </div>
+    <!-- ================== END OF PAGE 1 ================== -->
+
+
+    <!-- 
+    ============================================================
+    PAGE 2: CONSENT (SURVEY)
+    ============================================================
+    -->
+    <div id="page-consent" class="min-h-screen flex flex-col bg-gray-100 hidden">
+        
+        <header class="w-full bg-brand-blue text-white p-4 shadow-md">
+            <h1 class="text-center text-xl sm:text-2xl font-bold">
+                Valenzuela City — Client Satisfaction Feedback
+            </h1>
+        </header>
+
+        <main class="flex-grow w-full max-w-4xl mx-auto p-4 sm:p-8 flex items-center justify-center relative">
+            
+    		<div class="absolute inset-0 flex items-center justify-center opacity-25 z-0" aria-hidden="true">
+    			<img 
+    				src="bgseal.png" 
+    				alt="City Seal Watermark" 
+    				class="h-64 w-64 sm:h-96 sm:w-96 object-contain"
+    			>
+    		</div>
+
+            <div class="bg-white rounded-lg shadow-xl p-6 sm:p-8 border-l-8 border-blue-400 w-full relative z-10" style="background-image:url('bgseal.png'); background-repeat:no-repeat; background-position:right 1rem top 1rem; background-size:180px; background-blend-mode:luminosity;">
+                <h2 class="text-center text-4xl font-bold text-gray-800 mb-6">
+                    CONSENT
+                </h2>
+                <p class="text-gray-700 text-base sm:text-lg mb-6">
+                    By continuing, I consent to the collection and processing by the City Government of Valenzuela of my feedback and voluntary personal data for the purpose of monitoring and improving public services. Participation is voluntary and protected under the Data Privacy Act (RA 10173).
+                    <br><br>
+                    (Sumasang-ayon ako sa pagkokolekta at pagproseso ng impormasyon alinsunod sa RA 10173.)
+                </p>
+                
+                <div class="form-control">
+                    <label class="label cursor-pointer justify-start items-start space-x-3">
+                        <input type="checkbox" id="consent-checkbox" class="checkbox checkbox-primary mt-1" />
+                        <span class="label-text text-base text-gray-700">
+                            I have read and agree to the Consent Notice.
+                            <br>
+                            (Pinahahalagahan ang iyong pahintulot.)
+                        </span>
+                    </label>
+                </div>
+            </div>
+        </main>
+
+        <footer class="w-full bg-white p-4 sm:p-6 shadow-inner mt-auto">
+            <div class="flex justify-between max-w-4xl mx-auto">
+                <button id="btn-consent-prev" class="btn btn-lg rounded-full px-8 btn-outline">
+                    &larr; Prev
+                </button>
+                <button 
+                    id="btn-consent-next" 
+                    class="btn btn-lg rounded-full px-8 text-white bg-gradient-to-r from-blue-500 to-purple-600 border-none disabled:bg-gray-300 disabled:from-gray-300 disabled:to-gray-300 disabled:text-gray-500"
+                    disabled
+                >
+                    Next &rarr;
+                </button>
+            </div>
+        </footer>
+    </div>
+    <!-- ================== END OF PAGE 2 ================== -->
+
+
+    <!-- 
+    ============================================================
+    PAGE 3: SERVICES (SURVEY)
+    ============================================================
+    -->
+    <div id="page-services" class="min-h-screen flex flex-col bg-gray-100 hidden">
+        
+        <header class="w-full bg-brand-blue text-white p-4 shadow-md">
+            <h1 class="text-center text-xl sm:text-2xl font-bold">
+                Valenzuela City — Client Satisfaction Feedback
+            </h1>
+        </header>
+
+        <main class="flex-grow w-full max-w-4xl mx-auto p-4 sm:p-8 flex flex-col items-center justify-center relative">
+            
+    		<div class="absolute inset-0 flex items-center justify-center opacity-25 z-0" aria-hidden="true">
+    			<img 
+    				src="bgseal.png" 
+    				alt="City Seal Watermark" 
+    				class="h-64 w-64 sm:h-96 sm:w-96 object-contain"
+    			>
+    		</div>
+
+            <div class="w-full relative z-10">
+                <h2 class="text-center text-3xl font-bold text-gray-800 mb-2">
+                    Which service did you use?
+                </h2>
+                <p class="text-center text-gray-600 text-lg mb-8">
+                    Please choose the department or office you visited today.
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    
+                    <button class="service-button bg-white p-4 rounded-lg shadow border border-gray-200 flex items-center space-x-4 text-left transition-all duration-150">
+                        <span class="flex-shrink-0 w-16 h-16 rounded-lg bg-gradient-to-br from-purple-400 to-blue-500 flex items-center justify-center text-white">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="7" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+                        </span>
+                        <div>
+                            <span class="text-lg font-bold text-gray-800">Business Permit</span>
+                            <span class="block text-gray-600">Licensing & Permits</span>
+                        </div>
+                    </button>
+
+                    <button class="service-button bg-white p-4 rounded-lg shadow border border-gray-200 flex items-center space-x-4 text-left transition-all duration-150">
+                        <span class="flex-shrink-0 w-16 h-16 rounded-lg bg-gradient-to-br from-purple-400 to-blue-500 flex items-center justify-center text-white">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                        </span>
+                        <div>
+                            <span class="text-lg font-bold text-gray-800">Civil Registry</span>
+                            <span class="block text-gray-600">Births, Marriages, Deaths</span>
+                        </div>
+                    </button>
+
+                    <button class="service-button bg-white p-4 rounded-lg shadow border border-gray-200 flex items-center space-x-4 text-left transition-all duration-150">
+                        <span class="flex-shrink-0 w-16 h-16 rounded-lg bg-gradient-to-br from-purple-400 to-blue-500 flex items-center justify-center text-white">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path><path d="M3.22 12H9.5l.7-1.44.7 1.44H17"></path></svg>
+                        </span>
+                        <div>
+                            <span class="text-lg font-bold text-gray-800">Health Services</span>
+                            <span class="block text-gray-600">Clinics / Immunization</span>
+                        </div>
+                    </button>
+
+                    <button class="service-button bg-white p-4 rounded-lg shadow border border-gray-200 flex items-center space-x-4 text-left transition-all duration-150">
+                        <span class="flex-shrink-0 w-16 h-16 rounded-lg bg-gradient-to-br from-purple-400 to-blue-500 flex items-center justify-center text-white">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 16V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v9m16 0H4m16 0 1.28 2.55a1 1 0 0 1-.9 1.45H3.62a1 1 0 0 1-.9-1.45L4 16"></path></svg>
+                        </span>
+                        <div>
+                            <span class="text-lg font-bold text-gray-800">Online Service</span>
+                            <span class="block text-gray-600">Portal / E-Services</span>
+                        </div>
+                    </button>
+
+                    <button class="service-button bg-white p-4 rounded-lg shadow border border-gray-200 flex items-center space-x-4 text-left transition-all duration-150">
+                        <span class="flex-shrink-0 w-16 h-16 rounded-lg bg-gradient-to-br from-purple-400 to-blue-500 flex items-center justify-center text-white">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                        </span>
+                        <div>
+                            <span class="text-lg font-bold text-gray-800">Barangay Service</span>
+                            <span class="block text-gray-600">Local barangay transactions</span>
+                        </div>
+                    </button>
+
+                    <button class="service-button bg-white p-4 rounded-lg shadow border border-gray-200 flex items-center space-x-4 text-left transition-all duration-150">
+                        <span class="flex-shrink-0 w-16 h-16 rounded-lg bg-gradient-to-br from-purple-400 to-blue-500 flex items-center justify-center text-white">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg>
+                        </span>
+                        <div>
+                            <span class="text-lg font-bold text-gray-800">Other</span>
+                            <span class="block text-gray-600">General / Other concerns</span>
+                        </div>
+                    </button>
+                    
+                </div>
+            </div>
+        </main>
+
+        <footer class="w-full bg-white p-4 sm:p-6 shadow-inner mt-auto">
+            <div class="flex justify-between max-w-4xl mx-auto">
+                <button id="btn-services-prev" class="btn btn-lg rounded-full px-8 btn-outline">
+                    &larr; Prev
+                </button>
+                <button 
+                    id="btn-services-next" 
+                    class="btn btn-lg rounded-full px-8 text-white bg-gradient-to-r from-blue-500 to-purple-600 border-none disabled:bg-gray-300 disabled:from-gray-300 disabled:to-gray-300 disabled:text-gray-500"
+                    disabled
+                >
+                    Next &rarr;
+                </button>
+            </div>
+        </footer>
+    </div>
+    <!-- ================== END OF PAGE 3 ================== -->
+
+    <!-- 
+    ============================================================
+    PAGE 4: CLIENT INFO (SURVEY)
+    ============================================================
+    -->
+    <div id="page-client-info" class="min-h-screen flex flex-col bg-gray-100 hidden">
+        
+        <header class="w-full bg-brand-blue text-white p-4 shadow-md">
+            <h1 class="text-center text-xl sm:text-2xl font-bold">
+                Valenzuela City — Client Satisfaction Feedback
+            </h1>
+        </header>
+
+        <main class="flex-grow w-full max-w-4xl mx-auto p-4 sm:p-8 flex flex-col items-center justify-center relative">
+            
+    		<div class="absolute inset-0 flex items-center justify-center opacity-25 z-0" aria-hidden="true">
+    			<img 
+    				src="bgseal.png" 
+    				alt="City Seal Watermark" 
+    				class="h-64 w-64 sm:h-96 sm:w-96 object-contain"
+    			>
+    		</div>
+
+            <div class="w-full relative z-10 bg-white p-6 sm:p-8 rounded-lg shadow-xl">
+                <h2 class="text-center text-3xl font-bold text-gray-800 mb-2">
+                    Client Information (Optional)
+                </h2>
+                <p class="text-center text-gray-600 text-lg mb-8">
+                    Provide only if you want a follow-up. (Opsyonal – para lang sa follow-up.)
+                </p>
+
+                <div class="space-y-6">
+                    <!-- Honeypot field (hidden visually) -->
+                    <input type="text" id="hp-trap" name="website" autocomplete="off" tabindex="-1" style="position:absolute;left:-10000px;opacity:0;" aria-hidden="true" />
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-5 gap-6">
+                        <div class="form-control sm:col-span-2">
+                            <label class="label">
+                                <span class="label-text">Full Name</span>
+                            </label>
+                            <input type="text" id="input-name" placeholder="Harlson Mark Gardose (Optional)" class="input input-bordered w-full" />
+                        </div>
+                        <div class="form-control sm:col-span-1">
+                            <label class="label">
+                                <span class="label-text">Age</span>
+                            </label>
+                            <input type="number" id="input-age" placeholder="e.g. 60" class="input input-bordered w-full" />
+                        </div>
+                        <div class="form-control sm:col-span-2">
+                            <label class="label">
+                                <span class="label-text">Barangay</span>
+                            </label>
+                            <select id="input-barangay" class="select select-bordered w-full">
+                                <option disabled selected value="">Select here</option>
+                                <option>Arkong Bato</option>
+                                <option>Bagbaguin</option>
+                                <option>Balangkas</option>
+                                <option>Bignay</option>
+                                <option>Bisig</option>
+                                <option>Canumay East</option>
+                                <option>Canumay West</option>
+                                <option>Coloong</option>
+                                <option>Dalandanan</option>
+                                <option>Gen. T. de Leon</option>
+                                <option>Isla</option>
+                                <option>Karuhatan</option>
+                                <option>Lawang Bato</option>
+                                <option>Lingunan</option>
+                                <option>Mabolo</option>
+                                <option>Malanday</option>
+                                <option>Malinta</option>
+                                <option>Marulas</option>
+                                <option>Mapulang Lupa</option>
+                                <option>Maysan</option>
+                                <option>Palasan</option>
+                                <option>Parada</option>
+                                <option>Pariancillo Villa</option>
+                                <option>Paso de Blas</option>
+                                <option>Pasolo</option>
+                                <option>Poblacion</option>
+                                <option>Polo</option>
+                                <option>Punturin</option>
+                                <option>Rincon</option>
+                                <option>Tagalag</option>
+                                <option>Ugong</option>
+                                <option>Veinte Reales</option>
+                                <option>Wawang Pulo</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text">Email (Optional)</span>
+                            </label>
+                            <input type="email" id="input-email" placeholder="you@gmail.com" class="input input-bordered w-full" />
+                            <p id="error-email" class="text-red-500 text-sm mt-1 hidden">Please enter a valid email address.</p>
+                        </div>
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text">Phone (Optional)</span>
+                            </label>
+                            <input type="tel" id="input-phone" placeholder="09XXXXXXXXX or +639XXXXXXXXX" class="input input-bordered w-full" />
+                            <p id="error-phone" class="text-red-500 text-sm mt-1 hidden">Phone must be 09XXXXXXXXX or +639XXXXXXXXX.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="w-full bg-white p-4 sm:p-6 shadow-inner mt-auto">
+            <div class="flex justify-between max-w-4xl mx-auto">
+                <button id="btn-client-info-prev" class="btn btn-lg rounded-full px-8 btn-outline">
+                    &larr; Prev
+                </button>
+                <button 
+                    id="btn-client-info-next" 
+                    class="btn btn-lg rounded-full px-8 text-white bg-gradient-to-r from-blue-500 to-purple-600 border-none"
+                >
+                    Next &rarr;
+                </button>
+            </div>
+        </footer>
+    </div>
+    <!-- ================== END OF PAGE 4 ================== -->
+
+
+    <!-- 
+    ============================================================
+    PAGE 5: FINAL COMMENTS (SURVEY)
+    ============================================================
+    -->
+    <div id="page-final-comments" class="min-h-screen flex flex-col bg-gray-100 hidden">
+        
+        <header class="w-full bg-brand-blue text-white p-4 shadow-md">
+            <h1 class="text-center text-xl sm:text-2xl font-bold">
+                Valenzuela City — Client Satisfaction Feedback
+            </h1>
+        </header>
+
+        <main class="flex-grow w-full max-w-4xl mx-auto p-4 sm:p-8 flex flex-col items-center justify-center relative">
+            
+    		<div class="absolute inset-0 flex items-center justify-center opacity-25 z-0" aria-hidden="true">
+    			<img 
+    				src="bgseal.png" 
+    				alt="City Seal Watermark" 
+    				class="h-64 w-64 sm:h-96 sm:w-96 object-contain"
+    			>
+    		</div>
+
+            <div class="w-full relative z-10">
+                <h2 class="text-center text-3xl font-bold text-gray-800 mb-2">
+                    Suggestions or Concerns
+                </h2>
+                <p class="text-center text-gray-600 text-lg mb-8">
+                    Optional – up to 500 characters. (Opsyonal – max 500 characters.)
+                </p>
+
+                <div class="w-full bg-white p-6 sm:p-8 rounded-lg shadow-xl">
+                    <div class="form-control">
+                        <textarea 
+                            id="comments-textarea"
+                            class="textarea textarea-bordered w-full h-48 text-base" 
+                            placeholder="Write any suggestions or concerns here..."
+                            maxlength="500"
+                        ></textarea>
+                        <label class="label">
+                            <span class="label-text-alt"></span>
+                            <span class="label-text-alt text-base">
+                                <span id="char-count">0</span>/500
+                            </span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="w-full bg-white p-4 sm:p-6 shadow-inner mt-auto">
+            <div class="flex justify-between max-w-4xl mx-auto">
+                
+                <button id="btn-final-comments-prev" class="btn btn-lg rounded-full px-8 btn-outline">
+                    &larr; Prev
+                </button>
+                
+                <button 
+                    id="btn-final-comments-next" 
+                    class="btn btn-lg rounded-full px-8 text-white bg-gradient-to-r from-blue-500 to-purple-600 border-none"
+                >
+                    Next &rarr;
+                </button>
+            </div>
+        </footer>
+    </div>
+    <!-- ================== END OF PAGE 5 ================== -->
+
+    <!-- 
+    ============================================================
+    PAGE 6: REVIEW & SUBMIT (SURVEY)
+    ============================================================
+    -->
+    <div id="page-review" class="min-h-screen flex flex-col bg-gray-100 hidden">
+        
+        <header class="w-full bg-brand-blue text-white p-4 shadow-md">
+            <h1 class="text-center text-xl sm:text-2xl font-bold">
+                Valenzuela City — Client Satisfaction Feedback
+            </h1>
+        </header>
+
+        <main class="flex-grow w-full max-w-5xl mx-auto p-4 sm:p-8 flex flex-col items-center justify-center relative">
+            
+    		<div class="absolute inset-0 flex items-center justify-center opacity-25 z-0" aria-hidden="true">
+    			<img 
+    				src="bgseal.png" 
+    				alt="City Seal Watermark" 
+    				class="h-64 w-64 sm:h-96 sm:w-96 object-contain"
+    			>
+    		</div>
+
+            <div class="w-full relative z-10">
+                <h2 class="text-center text-3xl font-bold text-gray-800 mb-2">
+                    Review & Submit
+                </h2>
+                <p class="text-center text-gray-600 text-lg mb-8">
+                    Review your answers before submitting. (Suriin muna bago isumite.)
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    
+                    <div class="flex flex-col space-y-6">
+                        <div class="bg-white p-6 rounded-lg shadow-xl border border-gray-200 h-full">
+                            <h3 class="text-lg font-bold text-brand-blue mb-4">
+                                Personal Information <span class="font-normal text-gray-600">(Optional)</span>
+                            </h3>
+                            <div class="space-y-2 text-gray-700">
+                                <p><strong>Name:</strong> <span id="review-name"></span></p>
+                                <p><strong>Age:</strong> <span id="review-age"></span></p>
+                                <p><strong>Barangay:</strong> <span id="review-barangay"></span></p>
+                                <p><strong>Email:</strong> <span id="review-email"></span></p>
+                                <p><strong>Phone:</strong> <span id="review-phone"></span></p>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-6 rounded-lg shadow-xl border border-gray-200">
+                            <h3 class="text-lg font-bold text-brand-blue mb-2">Service:</h3>
+                            <p class="text-gray-700 text-lg" id="review-service"></p>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-lg shadow-xl border border-gray-200 h-full">
+                        <h3 class="text-lg font-bold text-brand-blue mb-4">Ratings</h3>
+                        <div id="review-ratings-list" class="space-y-3 text-gray-700 max-h-96 overflow-y-auto">
+                            <!-- Ratings will be dynamically inserted here by JS -->
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+
+        <footer class="w-full bg-white p-4 sm:p-6 shadow-inner mt-auto">
+            <div class="flex justify-between items-center max-w-5xl mx-auto">
+                <button id="btn-review-prev" class="btn btn-lg rounded-full px-8 btn-outline">
+                    &larr; Prev
+                </button>
+                <button 
+                    id="btn-review-submit" 
+                    class="btn btn-lg rounded-full px-10 text-white bg-gradient-to-r from-cyan-400 to-blue-600 border-none"
+                >
+                    Submit Feedback
+                </button>
+            </div>
+        </footer>
+    </div>
+    <!-- ================== END OF PAGE 6 ================== -->
+
+    <!-- 
+    ============================================================
+    PAGE 7: THANK YOU (SURVEY)
+    ============================================================
+    -->
+	<div 
+        id="page-thank-you" 
+        class="min-h-screen flex flex-col hidden relative overflow-hidden bg-cover bg-center"
+        style="background-image: url('submitbg.jpg');"
+    >
+        
+        <header class="w-full bg-brand-blue text-white p-4 shadow-md z-10">
+            <h1 class="text-center text-xl sm:text-2xl font-bold">
+                Valenzuela City — Client Satisfaction Feedback
+            </h1>
+        </header>
+
+        <main class="flex-grow w-full max-w-4xl mx-auto p-4 sm:p-8 flex flex-col items-center justify-start pt-20 relative text-center z-10">
+            
+            <div class="w-full relative">
+                
+                <h2 class="text-center text-4xl font-bold text-black mb-4">
+				<br><br>
+                    Maraming Salamat Ka-Valenzuelano!
+                </h2>
+                <p class="text-center text-black-200 text-xl mb-10">
+                    We have received your feedback. Thank you for helping improve Valenzuela City services.
+                    <br>
+                    (Natanggap na ang iyong puna. Salamat!)
+                </p>
+
+                <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
+                    <button 
+                        id="btn-submit-another" 
+                        class="btn btn-lg rounded-full px-10 text-white bg-gradient-to-r from-cyan-400 to-blue-600 border-none"
+                    >
+                        Submit Another
+                    </button>
+                    <button 
+                        id="btn-finish" 
+                        class="btn btn-lg rounded-full px-10 btn-outline btn-primary"
+                    >
+                        Finish
+                    </button>
+                </div>
+                </div>
+        </main>
+    </div>
+    <!-- ================== END OF PAGE 7 ================== -->
+
+
+    <!-- 
+    ============================================================
+    RATING PAGES (A1 - C3) (SURVEY)
+    ============================================================
+    -->
+
+    <!-- Helper script to create rating pages -->
+    <script>
+        function createRatingPageHTML(id, title, question, subtext, prevPageId, nextPageId) {
+            return `
+            <div id="${id}" class="min-h-screen flex flex-col bg-gray-100 hidden">
+                <header class="w-full bg-brand-blue text-white p-4 shadow-md">
+                    <h1 class="text-center text-xl sm:text-2xl font-bold">
+                        Valenzuela City — Client Satisfaction Feedback
+                    </h1>
+                </header>
+                <main class="flex-grow w-full max-w-4xl mx-auto p-4 sm:p-8 flex flex-col items-center justify-center relative">
+                    <div class="absolute inset-0 flex items-center justify-center opacity-10 z-0" aria-hidden="true">
+                        <img 
+                            src="bgseal.png" 
+                            alt="City Seal Watermark" 
+                            class="h-64 w-64 sm:h-96 sm:w-96 object-contain"
+                            onerror="this.src='https://placehold.co/400x400/E0E0E0/333?text=City+Seal';"
+                        >
+                    </div>
+                    <div class="w-full relative z-10">
+                        <h2 class="text-center text-3xl font-bold text-gray-800 mb-6">${title}</h2>
+                        <div class="bg-gray-200 rounded-lg p-4 w-full max-w-lg mx-auto mb-8 text-center">
+                            <p class="text-xl font-semibold text-gray-800">${question}</p>
+                            <p class="text-gray-600">(${subtext})</p>
+                        </div>
+                        <div class="flex flex-wrap justify-center gap-2 sm:grid sm:grid-cols-5 sm:gap-4">
+                            <!-- Rating Button: Very Satisfied -->
+                            <button class="rating-button w-2/5 sm:w-full bg-white p-4 rounded-lg shadow border border-gray-200 flex flex-col items-center space-y-2 text-center transition-all duration-150" data-value="Very Satisfied">
+                                <svg class="h-16 w-16 text-green-500" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M18 13a6 6 0 0 1-6 5 6 6 0 0 1-6-5h12Z"></path><line x1="9" x2="9.01" y1="9" y2="9"></line><line x1="15" x2="15.01" y1="9" y2="9"></line></svg>
+                                <span class="text-sm font-bold text-gray-800">VERY SATISFIED</span>
+                                <span class="block text-xs text-gray-600">(Lubos na Nasiyahan)</span>
+                            </button>
+                            <!-- Rating Button: Satisfied -->
+                            <button class="rating-button w-2/5 sm:w-full bg-white p-4 rounded-lg shadow border border-gray-200 flex flex-col items-center space-y-2 text-center transition-all duration-150" data-value="Satisfied">
+                                <svg class="h-16 w-16 text-lime-500" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" x2="9.01" y1="9" y2="9"></line><line x1="15" x2="15.01" y1="9" y2="9"></line></svg>
+                                <span class="text-sm font-bold text-gray-800">SATISFIED</span>
+                                <span class="block text-xs text-gray-600">(Nasiyahan)</span>
+                            </button>
+                            <!-- Rating Button: Neutral -->
+                            <button class="rating-button w-2/5 sm:w-full bg-white p-4 rounded-lg shadow border border-gray-200 flex flex-col items-center space-y-2 text-center transition-all duration-150" data-value="Neutral">
+                                <svg class="h-16 w-16 text-yellow-500" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="8" x2="16" y1="15" y2="15"></line><line x1="9" x2="9.01" y1="9" y2="9"></line><line x1="15" x2="15.01" y1="9" y2="9"></line></svg>
+                                <span class="text-sm font-bold text-gray-800">NEUTRAL</span>
+                                <span class="block text-xs text-gray-600">(Katamtaman)</span>
+                            </button>
+                            <!-- Rating Button: Dissatisfied -->
+                            <button class="rating-button w-2/5 sm:w-full bg-white p-4 rounded-lg shadow border border-gray-200 flex flex-col items-center space-y-2 text-center transition-all duration-150" data-value="Dissatisfied">
+                                <svg class="h-16 w-16 text-orange-500" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M16 16s-1.5-2-4-2-4 2-4 2"></path><line x1="9" x2="9.01" y1="9" y2="9"></line><line x1="15" x2="15.01" y1="9" y2="9"></line></svg>
+                                <span class="text-sm font-bold text-gray-800">DISSATISFIED</span>
+                                <span class="block text-xs text-gray-600">(Hindi Nasiyahan)</span>
+                            </button>
+                            <!-- Rating Button: Very Dissatisfied -->
+                            <button class="rating-button w-2/5 sm:w-full bg-white p-4 rounded-lg shadow border border-gray-200 flex flex-col items-center space-y-2 text-center transition-all duration-150" data-value="Very Dissatisfied">
+                                <svg class="h-16 w-16 text-red-500" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M16 16s-1.5-2-4-2-4 2-4 2"></path><path d="m9 10 1.5 1.5"></path><path d="m10.5 10-1.5 1.5"></path><path d="m15 10 1.5 1.5"></path><path d="m16.5 10-1.5 1.5"></path></svg>
+                                <span class="text-sm font-bold text-gray-800">VERY DISSATISFIED</span>
+                                <span class="block text-xs text-gray-600">(Lubos na Hindi Nasiyahan)</span>
+                            </button>
+                        </div>
+                    </div>
+                </main>
+                <footer class="w-full bg-white p-4 sm:p-6 shadow-inner mt-auto">
+                    <div class="flex justify-between max-w-4xl mx-auto">
+                        <button id="btn-${id}-prev" class="btn btn-lg rounded-full px-8 btn-outline" data-prev="${prevPageId}">
+                            &larr; Prev
+                        </button>
+                        <button 
+                            id="btn-${id}-next" 
+                            class="btn btn-lg rounded-full px-8 text-white bg-gradient-to-r from-blue-500 to-purple-600 border-none disabled:bg-gray-300 disabled:from-gray-300 disabled:to-gray-300 disabled:text-gray-500"
+                            data-next="${nextPageId}"
+                            data-rating-id="${id.split('-')[2]}"
+                            disabled
+                        >
+                            Next &rarr;
+                        </button>
+                    </div>
+                </footer>
+            </div>
+            `;
+        }
+        
+        const ratingPages = [
+            { id: 'page-rating-A1', title: 'A. Service Experience', question: 'The staff were courteous and respectful.', subtext: 'Magalang at magalang ang mga kawani.', prev: 'page-client-info', next: 'page-rating-A2' },
+            { id: 'page-rating-A2', title: 'A. Service Experience', question: 'The process was simple and easy to follow.', subtext: 'Madali at malinaw ang proseso.', prev: 'page-rating-A1', next: 'page-rating-A3' },
+            { id: 'page-rating-A3', title: 'A. Service Experience', question: 'The transaction was completed in a reasonable amount of time.', subtext: 'Natapos ang transaksyon sa tamang oras.', prev: 'page-rating-A2', next: 'page-rating-A4' },
+            { id: 'page-rating-A4', title: 'A. Service Experience', question: 'The requirements were clearly explained to me.', subtext: 'Maayos na naipaliwanag ang mga kinakailangan.', prev: 'page-rating-A3', next: 'page-rating-B1' },
+            { id: 'page-rating-B1', title: 'B. Facility & Environment', question: 'The office was clean and organized.', subtext: 'Malinis at maayos ang tanggapan.', prev: 'page-rating-A4', next: 'page-rating-B2' },
+            { id: 'page-rating-B2', title: 'B. Facility & Environment', question: 'The waiting area was comfortable and safe.', subtext: 'Komportable at ligtas ang lugar ng paghihintay.', prev: 'page-rating-B1', next: 'page-rating-C1' },
+            { id: 'page-rating-C1', title: 'C. Overall Quality & Satisfaction', question: 'The service I received met my expectations.', subtext: 'Naaayon sa inaasahan ko ang natanggap kong serbisyo.', prev: 'page-rating-B2', next: 'page-rating-C2' },
+            { id: 'page-rating-C2', title: 'C. Overall Quality & Satisfaction', question: 'I was satisfied with the overall quality of service.', subtext: 'Nasiyahan ako sa kabuuang kalidad ng serbisyo.', prev: 'page-passing-C1', next: 'page-rating-C3' },
+            { id: 'page-rating-C3', title: 'C. Overall Quality & Satisfaction', question: 'I would recommend this service to others.', subtext: 'Ire-rekomenda ko ang serbisyong ito sa iba.', prev: 'page-rating-C2', next: 'page-final-comments' }
+        ];
+
+        let allRatingPagesHTML = '';
+        ratingPages.forEach(page => {
+            allRatingPagesHTML += createRatingPageHTML(page.id, page.title, page.question, page.subtext, page.prev, page.next);
+        });
+        document.body.insertAdjacentHTML('beforeend', allRatingPagesHTML);
+
+    </script>
+    <!-- ================== END OF SURVEY RATING PAGES ================== -->
+
+
+    <!-- 
+    ============================================================
+    JAVASCRIPT (FOR SURVEY)
+    ============================================================
+    -->
+    <script>
+        // --- Central Data Store (for Survey) ---
+        let surveyData = {
+            clientInfo: { name: '', age: '', barangay: '', email: '', phone: '' },
+            service: '',
+            ratings: {},
+            comments: '',
+            hp: '' // honeypot (must remain empty)
+        };
+        const initialSurveyData = JSON.parse(JSON.stringify(surveyData));
+
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // --- Survey Page References ---
+            const pageWelcome = document.getElementById('page-welcome');
+            const pageConsent = document.getElementById('page-consent');
+            const pageServices = document.getElementById('page-services');
+            const pageClientInfo = document.getElementById('page-client-info');
+            const pageFinalComments = document.getElementById('page-final-comments');
+            const pageReview = document.getElementById('page-review');
+            const pageThankYou = document.getElementById('page-thank-you');
+            
+            // --- Survey Button References ---
+            const btnTakeSurvey = document.getElementById('btn-take-survey');
+            const btnConsentPrev = document.getElementById('btn-consent-prev');
+            const btnConsentNext = document.getElementById('btn-consent-next');
+            const btnServicesPrev = document.getElementById('btn-services-prev');
+            const btnServicesNext = document.getElementById('btn-services-next');
+            const btnClientInfoPrev = document.getElementById('btn-client-info-prev');
+            const btnClientInfoNext = document.getElementById('btn-client-info-next');
+            const btnFinalCommentsPrev = document.getElementById('btn-final-comments-prev');
+            const btnFinalCommentsNext = document.getElementById('btn-final-comments-next');
+            const btnReviewPrev = document.getElementById('btn-review-prev');
+            const btnReviewSubmit = document.getElementById('btn-review-submit');
+            const btnSubmitAnother = document.getElementById('btn-submit-another');
+            const btnFinish = document.getElementById('btn-finish');
+            
+            // --- Survey Input References ---
+            const consentCheckbox = document.getElementById('consent-checkbox');
+            const serviceButtons = document.querySelectorAll('.service-button');
+            const commentsTextarea = document.getElementById('comments-textarea');
+            const charCount = document.getElementById('char-count');
+            const inputName = document.getElementById('input-name');
+            const inputAge = document.getElementById('input-age');
+            const inputBarangay = document.getElementById('input-barangay');
+            const inputEmail = document.getElementById('input-email');
+            const inputPhone = document.getElementById('input-phone');
+            const reviewName = document.getElementById('review-name');
+            const reviewAge = document.getElementById('review-age');
+            const errorEmail = document.getElementById('error-email');
+            const errorPhone = document.getElementById('error-phone');
+            // --- (SURVEY) Validation Helpers ---
+            function isValidEmail(v) {
+                if (!v) return true; // optional
+                // simple robust email check
+                return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+            }
+            function isValidPhonePH(v) {
+                if (!v) return true; // optional
+                return /^(\+639\d{9}|09\d{9})$/.test(v);
+            }
+            function showFieldError(inputEl, errorEl, show) {
+                if (show) {
+                    inputEl.classList.add('input-error');
+                    errorEl.classList.remove('hidden');
+                } else {
+                    inputEl.classList.remove('input-error');
+                    errorEl.classList.add('hidden');
+                }
+            }
+
+            // Real-time validation
+            inputEmail.addEventListener('input', () => {
+                showFieldError(inputEmail, errorEmail, !isValidEmail(inputEmail.value));
+            });
+            inputPhone.addEventListener('input', () => {
+                showFieldError(inputPhone, errorPhone, !isValidPhonePH(inputPhone.value));
+            });
+            const reviewBarangay = document.getElementById('review-barangay');
+            const reviewEmail = document.getElementById('review-email');
+            const reviewPhone = document.getElementById('review-phone');
+            const reviewService = document.getElementById('review-service');
+            const reviewRatingsList = document.getElementById('review-ratings-list');
+
+
+            // --- (SURVEY) Helper Function to Show a Page ---
+            function showPage(pageId) {
+                // Hide all top-level page divs
+                document.querySelectorAll('body > div[id^="page-"]').forEach(page => {
+                    page.classList.add('hidden');
+                });
+                
+                const pageToShow = document.getElementById(pageId);
+                if (pageToShow) {
+                    pageToShow.classList.remove('hidden');
+                }
+                
+                window.scrollTo(0, 0);
+            }
+
+            // --- (SURVEY) Helper Function to Reset Survey ---
+            function resetSurvey() {
+                surveyData = JSON.parse(JSON.stringify(initialSurveyData));
+                consentCheckbox.checked = false;
+                btnConsentNext.disabled = true;
+                serviceButtons.forEach(btn => btn.classList.remove('selected'));
+                btnServicesNext.disabled = true;
+                inputName.value = '';
+                inputAge.value = '';
+                inputBarangay.value = '';
+                inputEmail.value = '';
+                inputPhone.value = '';
+                commentsTextarea.value = '';
+                charCount.textContent = '0';
+                document.querySelectorAll('.rating-button').forEach(btn => btn.classList.remove('selected'));
+                document.querySelectorAll('[id^="btn-page-rating-"][id$="-next"]').forEach(btn => btn.disabled = true);
+                reviewName.textContent = '';
+                reviewAge.textContent = '';
+                reviewBarangay.textContent = '';
+                reviewEmail.textContent = '';
+                reviewPhone.textContent = '';
+                reviewService.textContent = '';
+                reviewRatingsList.innerHTML = '';
+                showPage('page-welcome');
+            }
+
+            // --- (SURVEY) Review Page Population ---
+            function updateReviewPage() {
+                reviewName.textContent = surveyData.clientInfo.name || 'N/A';
+                reviewAge.textContent = surveyData.clientInfo.age || 'N/A';
+                reviewBarangay.textContent = surveyData.clientInfo.barangay || 'N/A';
+                reviewEmail.textContent = surveyData.clientInfo.email || 'N/A';
+                reviewPhone.textContent = surveyData.clientInfo.phone || 'N/A';
+                reviewService.textContent = surveyData.service || 'N/Sucha';
+                reviewRatingsList.innerHTML = '';
+                
+                const allRatingPages = [
+                    { id: 'A1', question: 'The staff were courteous and respectful.' },
+                    { id: 'A2', question: 'The process was simple and easy to follow.' },
+                    { id: 'A3', question: 'The transaction was completed in a reasonable amount of time.' },
+                    { id: 'A4', question: 'The requirements were clearly explained to me.' },
+                    { id: 'B1', question: 'The office was clean and organized.' },
+                    { id: 'B2', question: 'The waiting area was comfortable and safe.' },
+                    { id: 'C1', question: 'The service I received met my expectations.' },
+                    { id: 'C2', question: 'I was satisfied with the overall quality of service.' },
+                    { id: 'C3', question: 'I would recommend this service to others.' }
+                ];
+
+                allRatingPages.forEach(page => {
+                    const ratingValue = surveyData.ratings[page.id] || 'Not Answered';
+                    const ratingHTML = `
+                        <div class="border-b pb-2">
+                            <p class="font-semibold text-gray-600">${page.question}</p>
+                            <p class="text-brand-blue font-bold">${ratingValue}</p>
+                        </div>
+                    `;
+                    reviewRatingsList.insertAdjacentHTML('beforeend', ratingHTML);
+                });
+            }
+
+            // --- (SURVEY) Reusable Rating Page Setup ---
+            function setupRatingPage(pageId) {
+                const page = document.getElementById(pageId);
+                if (!page) return;
+                
+                const buttons = page.querySelectorAll('.rating-button');
+                const nextButton = page.querySelector('[id^="btn-"][id$="-next"]');
+                const prevButton = page.querySelector('[id^="btn-"][id$="-prev"]');
+                const ratingId = nextButton.getAttribute('data-rating-id');
+
+                nextButton.addEventListener('click', () => {
+                    const nextPageId = nextButton.getAttribute('data-next');
+                    showPage(nextPageId);
+                });
+                prevButton.addEventListener('click', () => {
+                    const prevPageId = prevButton.getAttribute('data-prev');
+                    showPage(prevPageId);
+                });
+                buttons.forEach(button => {
+                    button.addEventListener('click', () => {
+                        buttons.forEach(btn => btn.classList.remove('selected'));
+                        button.classList.add('selected');
+                        const ratingValue = button.getAttribute('data-value');
+                        surveyData.ratings[ratingId] = ratingValue;
+                        nextButton.disabled = false;
+                    });
+                });
+            }
+
+            // --- (SURVEY) Event Listeners for Static Pages ---
+            btnTakeSurvey.addEventListener('click', () => showPage('page-consent'));
+            btnConsentPrev.addEventListener('click', () => showPage('page-welcome'));
+            btnConsentNext.addEventListener('click', () => showPage('page-services'));
+            consentCheckbox.addEventListener('change', () => {
+                btnConsentNext.disabled = !consentCheckbox.checked;
+            });
+            btnServicesPrev.addEventListener('click', () => showPage('page-consent'));
+            btnServicesNext.addEventListener('click', () => showPage('page-client-info'));
+            serviceButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    serviceButtons.forEach(btn => btn.classList.remove('selected'));
+                    button.classList.add('selected');
+                    surveyData.service = button.querySelector('.text-lg').textContent;
+                    btnServicesNext.disabled = false;
+                });
+            });
+            btnClientInfoPrev.addEventListener('click', () => showPage('page-services'));
+            btnClientInfoNext.addEventListener('click', () => {
+                surveyData.clientInfo.name = inputName.value;
+                surveyData.clientInfo.age = inputAge.value;
+                surveyData.clientInfo.barangay = inputBarangay.value;
+                surveyData.clientInfo.email = inputEmail.value;
+                surveyData.clientInfo.phone = inputPhone.value;
+
+                // Validate formats (optional fields): block ONLY if provided but invalid
+                const emailProvidedInvalid = (inputEmail.value.trim() !== '' && !isValidEmail(inputEmail.value.trim()));
+                const phoneProvidedInvalid = (inputPhone.value.trim() !== '' && !isValidPhonePH(inputPhone.value.trim()));
+                showFieldError(inputEmail, errorEmail, emailProvidedInvalid);
+                showFieldError(inputPhone, errorPhone, phoneProvidedInvalid);
+                if (emailProvidedInvalid || phoneProvidedInvalid) {
+                    return; // stay on page until fixed
+                }
+                showPage('page-rating-A1');
+            });
+            btnFinalCommentsPrev.addEventListener('click', () => showPage('page-rating-C3'));
+            btnFinalCommentsNext.addEventListener('click', () => {
+                surveyData.comments = commentsTextarea.value;
+                updateReviewPage();
+                showPage('page-review');
+            });
+            commentsTextarea.addEventListener('input', () => {
+                charCount.textContent = commentsTextarea.value.length;
+            });
+            btnReviewPrev.addEventListener('click', () => showPage('page-final-comments'));
+            btnReviewSubmit.addEventListener('click', () => {
+                // copy honeypot field from DOM if present (bots might fill it)
+                const hpEl = document.getElementById('hp-trap');
+                if (hpEl) surveyData.hp = hpEl.value || '';
+
+                fetch('/api/surveys', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify(surveyData) // surveyData is your existing JS object
+                })
+                .then(async response => {
+                    if (!response.ok) {
+                        let body = '';
+                        try { body = await response.text(); } catch {}
+                        if (response.status === 422) {
+                            try {
+                                const json = JSON.parse(body);
+                                const messages = json.errors ? Object.values(json.errors).flat().join('\n') : 'Validation error.';
+                                alert(messages);
+                            } catch {
+                                alert('Please make sure all fields are filled out correctly.');
+                            }
+                        } else {
+                            alert(`Error ${response.status}: ${body.slice(0, 500)}`);
+                        }
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Success:', data);
+                    showPage('page-thank-you');
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    // We do nothing here, so the user stays on the review page
+                });
+            });
+            btnSubmitAnother.addEventListener('click', () => resetSurvey());
+            btnFinish.addEventListener('click', () => resetSurvey());
+
+            // --- (SURVEY) Initialize All Rating Pages ---
+            const allRatingPages = [
+                { id: 'page-rating-A1', title: 'A. Service Experience', question: 'The staff were courteous and respectful.', subtext: 'Magalang at magalang ang mga kawani.', prev: 'page-client-info', next: 'page-rating-A2' },
+                { id: 'page-rating-A2', title: 'A. Service Experience', question: 'The process was simple and easy to follow.', subtext: 'Madali at malinaw ang proseso.', prev: 'page-rating-A1', next: 'page-rating-A3' },
+                { id: 'page-rating-A3', title: 'A. Service Experience', question: 'The transaction was completed in a reasonable amount of time.', subtext: 'Natapos ang transaksyon sa tamang oras.', prev: 'page-rating-A2', next: 'page-rating-A4' },
+                { id: 'page-rating-A4', title: 'A. Service Experience', question: 'The requirements were clearly explained to me.', subtext: 'Maayos na naipaliwanag ang mga kinakailangan.', prev: 'page-rating-A3', next: 'page-rating-B1' },
+                { id: 'page-rating-B1', title: 'B. Facility & Environment', question: 'The office was clean and organized.', subtext: 'Malinis at maayos ang tanggapan.', prev: 'page-rating-A4', next: 'page-rating-B2' },
+                { id: 'page-rating-B2', title: 'B. Facility & Environment', question: 'The waiting area was comfortable and safe.', subtext: 'Komportable at ligtas ang lugar ng paghihintay.', prev: 'page-rating-B1', next: 'page-rating-C1' },
+                { id: 'page-rating-C1', title: 'C. Overall Quality & Satisfaction', question: 'The service I received met my expectations.', subtext: 'Naaayon sa inaasahan ko ang natanggap kong serbisyo.', prev: 'page-rating-B2', next: 'page-rating-C2' },
+                { id: 'page-rating-C2', title: 'C. Overall Quality & Satisfaction', question: 'I was satisfied with the overall quality of service.', subtext: 'Nasiyahan ako sa kabuuang kalidad ng serbisyo.', prev: 'page-rating-C1', next: 'page-rating-C3' },
+                { id: 'page-rating-C3', title: 'C. Overall Quality & Satisfaction', question: 'I would recommend this service to others.', subtext: 'Ire-rekomenda ko ang serbisyong ito sa iba.', prev: 'page-rating-C2', next: 'page-final-comments' }
+            ];
+            allRatingPages.forEach(page => setupRatingPage(page.id));
+
+            // --- (SURVEY) Initial State ---
+            btnConsentNext.disabled = true;
+            btnServicesNext.disabled = true;
+
+            // --- Initial Page Load ---
+            showPage('page-welcome');
+
+            // Animations intentionally disabled for accessibility comfort
+
+            // FAB open/close logic (single toggle + auto-close in 5s)
+            const fab = document.querySelector('.fab');
+            const fabToggle = document.querySelector('.fab .fab-toggle');
+            let fabTimer = null;
+            function startFabAutoClose() {
+                clearTimeout(fabTimer);
+                fabTimer = setTimeout(() => {
+                    fab?.classList.remove('open');
+                }, 5000);
+            }
+            if (fab && fabToggle) {
+                fabToggle.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const willOpen = !fab.classList.contains('open');
+                    fab.classList.toggle('open');
+                    if (willOpen) {
+                        const firstAction = fab.querySelector('.fab-action');
+                        firstAction?.focus?.();
+                        startFabAutoClose();
+                    } else {
+                        clearTimeout(fabTimer);
+                    }
+                });
+                // Close on outside click
+                document.addEventListener('click', (e) => {
+                    if (!fab.contains(e.target)) {
+                        fab.classList.remove('open');
+                        clearTimeout(fabTimer);
+                    }
+                });
+                // Close on Escape
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') {
+                        fab.classList.remove('open');
+                        clearTimeout(fabTimer);
+                        fabToggle.focus?.();
+                    }
+                });
+            }
+
+            // --- ValBot Modal ---
+            const valbotModal = document.getElementById('valbot-modal');
+            const valbotOpenBtn = document.querySelector('.fab .fab-action.ai');
+            const valbotCloseBtn = document.getElementById('valbot-close');
+            const chatForm = document.getElementById('valbot-form');
+            const chatInput = document.getElementById('valbot-input');
+            const chatLog = document.getElementById('valbot-log');
+            let chatHistory = [];
+
+            function appendMsg(role, text) {
+                const wrap = document.createElement('div');
+                wrap.className = role === 'user' ? 'chat chat-end' : 'chat chat-start';
+                wrap.innerHTML = `
+                    <div class="chat-image avatar"><div class="w-8 rounded-full bg-gray-200 flex items-center justify-center">${role==='user'?'🧑':'🤖'}</div></div>
+                    <div class="chat-header">${role==='user'?'You':'ValBot'}</div>
+                    <div class="chat-bubble">${escapeHtml(text)}</div>
+                `;
+                chatLog.appendChild(wrap);
+                chatLog.scrollTop = chatLog.scrollHeight;
+            }
+
+            function escapeHtml(str) {
+                return String(str).replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[s]));
+            }
+
+            if (valbotOpenBtn && valbotModal) {
+                valbotOpenBtn.addEventListener('click', () => {
+                    if (fab) fab.classList.remove('open');
+                    clearTimeout(fabTimer);
+                    valbotModal.showModal();
+                    if (chatLog.childElementCount === 0) {
+                        appendMsg('assistant', 'Hi! I\'m ValBot — here to help you complete the survey.');
+                    }
+                    setTimeout(()=>chatInput?.focus?.(), 50);
+                });
+            }
+            if (valbotCloseBtn && valbotModal) {
+                valbotCloseBtn.addEventListener('click', () => valbotModal.close());
+            }
+
+            // Auto-close FAB shortly after clicking Facebook action as well
+            const fbBtn = document.querySelector('.fab .fab-action.fb');
+            if (fbBtn) {
+                fbBtn.addEventListener('click', () => {
+                    if (fab) fab.classList.remove('open');
+                    clearTimeout(fabTimer);
+                    // no need to start timer; it's already closed; link opens in new tab
+                });
+            }
+
+            // FAQ open
+            const faqBtn = document.querySelector('.fab .fab-action.faq');
+            const faqModal = document.getElementById('faq-modal');
+            if (faqBtn && faqModal) {
+                faqBtn.addEventListener('click', () => {
+                    if (fab) fab.classList.remove('open');
+                    clearTimeout(fabTimer);
+                    faqModal.showModal();
+                });
+            }
+
+            // Helper to post JSON with base fallback (works on file:// or other hosts)
+            async function postJSON(url, body, timeoutMs = 12000) {
+                const isHttpOrigin = /^https?:/i.test(window.location.origin || '');
+                const isValenzuelaHost = /(^|\.)valenzuela-survey\.test$/i.test(window.location.hostname);
+                // Try current origin first (if http/https), then domain fallbacks
+                const bases = isHttpOrigin ? [''] : (isValenzuelaHost ? [''] : ['http://valenzuela-survey.test', 'https://valenzuela-survey.test']);
+                let lastErr;
+                for (const base of bases) {
+                    try {
+                        const sep = url.includes('?') ? '&' : '?';
+                        const bust = `${url}${sep}_ts=${Date.now()}`;
+                        const controller = new AbortController();
+                        const id = setTimeout(() => controller.abort(), timeoutMs);
+                        const res = await fetch(base + bust, {
+                            method: 'POST',
+                            headers: { 'Content-Type':'application/json', 'Accept':'application/json' },
+                            body: JSON.stringify(body),
+                            signal: controller.signal,
+                        });
+                        clearTimeout(id);
+                        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                        return res.json();
+                    } catch (e) { lastErr = e; }
+                }
+                throw lastErr || new Error('Request failed');
+            }
+
+            if (chatForm) {
+                chatForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const msg = (chatInput.value || '').trim();
+                    if (!msg) return;
+                    appendMsg('user', msg);
+                    chatHistory.push({ role: 'user', content: msg });
+                    chatInput.value = '';
+                    const sendBtn = chatForm.querySelector('button[type="submit"], button');
+                    if (sendBtn) sendBtn.disabled = true;
+                    // Typing indicator
+                    const typing = document.createElement('div');
+                    typing.className = 'chat chat-start';
+                    typing.innerHTML = `
+                        <div class="chat-image avatar"><div class="w-8 rounded-full bg-gray-200 flex items-center justify-center">🤖</div></div>
+                        <div class="chat-header">ValBot</div>
+                        <div class="chat-bubble chat-bubble-secondary">Typing…</div>
+                    `;
+                    chatLog.appendChild(typing);
+                    chatLog.scrollTop = chatLog.scrollHeight;
+
+                    try {
+                        const json = await postJSON('/api/chat', { message: msg, history: chatHistory.slice(-10) });
+                        const reply = json.reply || 'Sorry, I had trouble responding.';
+                        typing.remove();
+                        appendMsg('assistant', reply);
+                        chatHistory.push({ role: 'assistant', content: reply });
+                    } catch (err) {
+                        typing.remove();
+                        appendMsg('assistant', "Sorry, I’m having trouble connecting to ValBot right now. Here’s a quick tip in the meantime.\n\nFor survey help, choose your answers from 1 (Very Dissatisfied) to 5 (Very Satisfied). You can add comments at the end.\n\nPasensya na, may problema sa koneksyon ngayon. Pansamantala: Pumili ng sagot mula 1 (Di Nasiyahan) hanggang 5 (Lubos na Nasiyahan). Maaari kang maglagay ng komento sa dulo.");
+                    }
+                    if (sendBtn) sendBtn.disabled = false;
+                });
+            }
+
+        }); // --- End of DOMContentLoaded ---
+    </script>
+
+    <!-- ValBot Chat Modal (refreshed UI) -->
+    <dialog id="valbot-modal" class="modal">
+        <div class="modal-box w-11/12 max-w-2xl p-0 overflow-hidden">
+            <div class="px-4 py-3 border-b bg-white/80 backdrop-blur">
+                <div class="flex items-center justify-between">
+                    <h3 class="font-bold text-lg">ValBot Assistant</h3>
+                    <button id="valbot-close" class="btn btn-sm btn-circle btn-ghost" aria-label="Close chat">✕</button>
+                </div>
+            </div>
+            <div id="valbot-log" class="h-80 overflow-y-auto space-y-3 p-4 bg-gray-50"></div>
+            <form id="valbot-form" class="p-3 border-t bg-white flex gap-2 items-center">
+                <input id="valbot-input" type="text" class="input input-bordered flex-1 rounded-full" placeholder="Ask about the survey…" autocomplete="off" />
+                <button class="btn btn-primary rounded-full px-5">Send</button>
+            </form>
+        </div>
+        <form method="dialog" class="modal-backdrop">
+            <button>close</button>
+        </form>
+    </dialog>
+    
+    <!-- FAQ Modal -->
+    <dialog id="faq-modal" class="modal">
+        <div class="modal-box w-11/12 max-w-2xl">
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="font-bold text-xl">Frequently Asked Questions</h3>
+                <form method="dialog"><button class="btn btn-sm btn-circle btn-ghost">✕</button></form>
+            </div>
+            <div class="space-y-3">
+                <details class="collapse bg-base-200">
+                    <summary class="collapse-title font-medium">How long does the survey take?</summary>
+                    <div class="collapse-content"><p>About 2–3 minutes. Ratings are 1–5 and comments are optional.</p></div>
+                </details>
+                <details class="collapse bg-base-200">
+                    <summary class="collapse-title font-medium">Do I need to provide my name or email?</summary>
+                    <div class="collapse-content"><p>No. Personal details are optional and help only if you want follow-up.</p></div>
+                </details>
+                <details class="collapse bg-base-200">
+                    <summary class="collapse-title font-medium">How is my data used?</summary>
+                    <div class="collapse-content"><p>To improve services per the Data Privacy Act (RA 10173). See the consent notice.</p></div>
+                </details>
+            </div>
+        </div>
+        <form method="dialog" class="modal-backdrop">
+            <button>close</button>
+        </form>
+    </dialog>
+    <!-- Floating Action Button (FAB) - Two Actions: AI Chatbot (placeholder) and Facebook Page -->
+    <div class="fab fab-flower" aria-label="Quick actions">
+        <!-- Single toggle button acts as open/close -->
+        <div tabindex="0" role="button" class="fab-toggle btn btn-lg btn-circle btn-success" aria-label="Toggle quick actions">
+            <i class="ph-bold ph-dots-three-outline"></i>
+        </div>
+
+        <!-- AI Chatbot -->
+        <button class="fab-action ai btn btn-lg btn-circle" title="AI Chatbot" aria-label="AI Chatbot">
+            <i class="ph-bold ph-chat-circle"></i>
+        </button>
+
+        <!-- Facebook link -->
+        <a class="fab-action fb btn btn-lg btn-circle" href="https://www.facebook.com/ValenzuelaCityGov" target="_blank" rel="noopener" title="Valenzuela City Facebook" aria-label="Valenzuela City Facebook">
+            <i class="ph-bold ph-facebook-logo"></i>
+        </a>
+
+        <!-- FAQ -->
+        <button class="fab-action faq btn btn-lg btn-circle" title="FAQs" aria-label="FAQs">
+            <i class="ph-bold ph-question"></i>
+        </button>
+    </div>
+</body>
+</html>
