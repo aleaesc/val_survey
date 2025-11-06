@@ -636,6 +636,23 @@
                 return h;
             }
 
+            // Fetch helper that returns a Blob (tries multiple bases for flexibility when opened from file:// or a different host)
+            async function fetchBlob(url) {
+                let lastErr;
+                for (const base of API_BASES) {
+                    try {
+                        const sep = url.includes('?') ? '&' : '?';
+                        const bust = `${url}${sep}_ts=${Date.now()}`;
+                        const res = await fetch(base + bust, { headers: authHeaders(), cache: 'no-store' });
+                        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                        return await res.blob();
+                    } catch (e) {
+                        lastErr = e;
+                    }
+                }
+                throw lastErr || new Error('Request failed');
+            }
+
             async function fetchJSON(url) {
                 let lastErr;
                 for (const base of API_BASES) {
@@ -1356,30 +1373,28 @@
             const exportPdfEl = document.getElementById('export-pdf');
             exportCsvEl?.addEventListener('click', async () => {
                 try {
-                    const res = await fetch('/api/surveys/export/csv', { headers: authHeaders() });
-                    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-                    const blob = await res.blob();
+                    const blob = await fetchBlob('/api/surveys/export/csv');
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url; a.download = `responses_${new Date().toISOString().slice(0,10)}.csv`;
                     document.body.appendChild(a); a.click(); document.body.removeChild(a);
                     URL.revokeObjectURL(url);
                 } catch (e) {
+                    console.error('CSV export failed:', e);
                     showToast('Failed to export CSV.', 'error');
                 }
             });
 
             exportPdfEl?.addEventListener('click', async () => {
                 try {
-                    const res = await fetch('/api/surveys/export/pdf', { headers: authHeaders() });
-                    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-                    const blob = await res.blob();
+                    const blob = await fetchBlob('/api/surveys/export/pdf');
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url; a.download = `survey_analytics_${new Date().toISOString().slice(0,10)}.pdf`;
                     document.body.appendChild(a); a.click(); document.body.removeChild(a);
                     URL.revokeObjectURL(url);
                 } catch (e) {
+                    console.error('PDF export failed:', e);
                     showToast('Failed to export PDF.', 'error');
                 }
             });
