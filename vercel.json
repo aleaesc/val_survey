@@ -5,11 +5,19 @@
       "runtime": "vercel-php@0.6.0"
     }
   },
-  "routes": [
-    { "src": "/data/(.*)", "dest": "/public/data/$1" },
-    { "src": "/(css|js|images|storage|favicon\\.ico|robots\\.txt|logo\\.png|bgseal\\.png|welcomebg\\.jpg|submitbg\\.jpg|1\\.jpg)", "dest": "/public/$1" },
-    { "src": "/(.*\\.(png|jpg|jpeg|gif|svg|webp|ico|css|js|map|json))", "dest": "/public/$1" },
-    { "src": "/(adminfrontend\\.html|endUser\\.html|index\\.html)", "dest": "/public/$1" },
-    { "src": "/(.*)", "dest": "api/index.php" }
+  "rewrites": [
+    { "source": "/data/:path*", "destination": "/public/data/:path*" },
+    { "source": "/(css|js|images|storage)/:path*", "destination": "/public/$1/:path*" },
+    { "source": "/favicon.ico", "destination": "/public/favicon.ico" },
+    { "source": "/robots.txt", "destination": "/public/robots.txt" },
+    { "source": "/logo.png", "destination": "/public/logo.png" },
+    { "source": "/bgseal.png", "destination": "/public/bgseal.png" },
+    { "source": "/welcomebg.jpg", "destination": "/public/welcomebg.jpg" },
+    { "source": "/submitbg.jpg", "destination": "/public/submitbg.jpg" },
+    { "source": "/1.jpg", "destination": "/public/1.jpg" },
+    { "source": "/adminfrontend.html", "destination": "/public/adminfrontend.html" },
+    { "source": "/endUser.html", "destination": "/public/endUser.html" },
+    { "source": "/", "destination": "/public/endUser.html" },
+    { "source": "/:path*", "destination": "/api/index.php" }
   ]
 }
