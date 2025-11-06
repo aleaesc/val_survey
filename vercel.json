@@ -15,6 +15,7 @@
     { "source": "/welcomebg.jpg", "destination": "/public/welcomebg.jpg" },
     { "source": "/submitbg.jpg", "destination": "/public/submitbg.jpg" },
     { "source": "/1.jpg", "destination": "/public/1.jpg" },
+    { "source": "/admin", "destination": "/public/adminfrontend.html" },
     { "source": "/adminfrontend.html", "destination": "/public/adminfrontend.html" },
     { "source": "/endUser.html", "destination": "/public/endUser.html" },
     { "source": "/", "destination": "/public/endUser.html" },
