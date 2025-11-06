@@ -296,11 +296,11 @@
 
                         <!-- Insights and Recommendations -->
                         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-                            <div class="bg-white rounded-lg shadow p-6" id="card-findings" data-aos="fade-up" data-aos-delay="0">
+                            <div class="bg-white rounded-lg shadow p-6 cursor-pointer" id="card-findings" data-aos="fade-up" data-aos-delay="0" title="Click to view details">
                                 <h3 class="font-bold text-lg mb-2">Initial Findings</h3>
                                 <p id="findings-text" class="text-gray-700">Loading summary…</p>
                             </div>
-                            <div class="bg-white rounded-lg shadow p-6" id="card-recos" data-aos="fade-up" data-aos-delay="100">
+                            <div class="bg-white rounded-lg shadow p-6 cursor-pointer" id="card-recos" data-aos="fade-up" data-aos-delay="100" title="Click to view details">
                                 <h3 class="font-bold text-lg mb-2">Recommendations</h3>
                                 <ul id="recos-list" class="list-disc list-inside text-gray-700 space-y-1">
                                     <li>Loading recommendations…</li>
@@ -391,7 +391,7 @@
         <div class="modal-box">
             <h3 class="font-bold text-2xl mb-4">Response Details</h3>
             <div class="space-y-2">
-                <p><strong>Name:</strong> Harlson</p>
+                <p><strong>Name:</strong> Juan Dela Cruz</p>
                 <p><strong>Age:</strong> 20</p>
                 <p><strong>Barangay:</strong> Maysan</p>
                 <p><strong>Service:</strong> Business Permit</p>
@@ -433,6 +433,30 @@
         <form method="dialog" class="modal-backdrop">
             <button>close</button>
         </form>
+    </dialog>
+
+    <!-- Findings Modal -->
+    <dialog id="modal-findings" class="modal">
+        <div class="modal-box max-w-2xl">
+            <h3 class="font-bold text-xl mb-2">Initial Findings</h3>
+            <div id="findings-full" class="whitespace-pre-wrap"></div>
+            <div class="modal-action">
+                <form method="dialog"><button class="btn">Close</button></form>
+            </div>
+        </div>
+        <form method="dialog" class="modal-backdrop"><button>close</button></form>
+    </dialog>
+
+    <!-- Recommendations Modal -->
+    <dialog id="modal-recos" class="modal">
+        <div class="modal-box max-w-2xl">
+            <h3 class="font-bold text-xl mb-2">Recommendations</h3>
+            <ul id="recos-full" class="list-disc pl-5 space-y-1"></ul>
+            <div class="modal-action">
+                <form method="dialog"><button class="btn">Close</button></form>
+            </div>
+        </div>
+        <form method="dialog" class="modal-backdrop"><button>close</button></form>
     </dialog>
 
 
@@ -1115,6 +1139,40 @@
                         filterServiceLabel.textContent = filterServiceValue || 'All services';
                         applyFiltersSort();
                     });
+                });
+            }
+
+            // Clickable Findings/Recommendations cards -> open modals with full content
+            const findingsCard = document.getElementById('card-findings');
+            const recosCard = document.getElementById('card-recos');
+            if (findingsCard) {
+                findingsCard.addEventListener('click', () => {
+                    const text = (document.getElementById('findings-text')?.textContent || '').trim();
+                    const box = document.getElementById('findings-full');
+                    if (box) box.textContent = text || 'No findings yet.';
+                    document.getElementById('modal-findings')?.showModal();
+                });
+            }
+            if (recosCard) {
+                recosCard.addEventListener('click', () => {
+                    const src = document.getElementById('recos-list');
+                    const dest = document.getElementById('recos-full');
+                    if (dest) {
+                        dest.innerHTML = '';
+                        if (src) {
+                            src.querySelectorAll('li').forEach(li => {
+                                const li2 = document.createElement('li');
+                                li2.textContent = li.textContent || '';
+                                dest.appendChild(li2);
+                            });
+                        }
+                        if (!dest.childElementCount) {
+                            const li2 = document.createElement('li');
+                            li2.textContent = 'No specific recommendations yet.';
+                            dest.appendChild(li2);
+                        }
+                    }
+                    document.getElementById('modal-recos')?.showModal();
                 });
             }
 

@@ -32,6 +32,11 @@ class ChatController extends BaseController
                 "- Default to English. If the user writes mainly in Tagalog (Filipino), switch to Tagalog as the primary language.",
                 "- Keep responses concise (under 120 words by default). Use lists or short steps when helpful.",
                 "- Primary language for this reply: {$primaryLanguage}.",
+                'Formatting rules (critical):',
+                '- Use plain text only. Do NOT use Markdown. Do NOT use **bold** or any markup.',
+                '- Preserve line breaks. Separate sections with a blank line.',
+                '- Prefer short bullets starting with "- " when listing items.',
+                '- Example structure: Brief answer (1–2 lines) + optional bullet steps + one closing tip if needed.',
                 'Goals:',
                 '- Help residents complete the survey and understand questions (A1..C3).',
                 '- Give step-by-step guidance when asked. Be brief and practical.',
@@ -53,6 +58,19 @@ class ChatController extends BaseController
                 'When users ask for emergency numbers or hotlines, list the numbers above clearly (bulleted) and suggest saving them. If on Tagalog, keep the numbers the same and translate the labels.',
             ]),
         ];
+
+        // Sanitize model replies to enforce plain text formatting
+        $sanitize = function ($text) {
+            $t = (string) $text;
+            // Normalize newlines
+            $t = str_replace(["\r\n", "\r"], "\n", $t);
+            // Strip common markdown emphasis and headers
+            $t = str_replace(['**', '__', '`'], '', $t);
+            $t = preg_replace('/^\s*#{1,6}\s*/m', '', $t) ?? $t; // remove markdown headings
+            // Collapse triple newlines to at most two
+            $t = preg_replace("/\n{3,}/", "\n\n", $t) ?? $t;
+            return trim($t);
+        };
 
         // Build conversation with limited history (compatible with older Laravel Collections)
         $historyItems = collect($data['history'] ?? [])
@@ -107,7 +125,7 @@ class ChatController extends BaseController
                 $json = $resp->json();
                 $reply = $json['choices'][0]['message']['content'] ?? null;
                 if (!$reply) { $reply = 'Sorry, I had trouble generating a response.'; }
-                return response()->json([ 'provider' => 'openai', 'reply' => $reply ]);
+                return response()->json([ 'provider' => 'openai', 'reply' => $sanitize($reply) ]);
             } catch (\Throwable $e) {
                 Log::warning('ValBot OpenAI exception', [ 'error' => $e->getMessage() ]);
                 $fallback = "Sorry, I’m having trouble connecting to ValBot right now. Here’s a quick tip in the meantime.\n\nFor survey help, choose your answers from 1 (Very Dissatisfied) to 5 (Very Satisfied). You can add comments at the end.\n\nPasensya na, may problema sa koneksyon ngayon. Pansamantala: Pumili ng sagot mula 1 (Di Nasiyahan) hanggang 5 (Lubos na Nasiyahan). Maaari kang maglagay ng komento sa dulo.";
@@ -149,7 +167,7 @@ class ChatController extends BaseController
                 if (!$reply) {
                     $reply = 'Sorry, I had trouble generating a response.';
                 }
-                return response()->json([ 'provider' => 'gemini', 'reply' => $reply ]);
+                return response()->json([ 'provider' => 'gemini', 'reply' => $sanitize($reply) ]);
             } catch (\Throwable $e) {
                 $fallback = "Sorry, I’m having trouble connecting to ValBot right now. Here’s a quick tip in the meantime.\n\nFor survey help, choose your answers from 1 (Very Dissatisfied) to 5 (Very Satisfied). You can add comments at the end.\n\nPasensya na, may problema sa koneksyon ngayon. Pansamantala: Pumili ng sagot mula 1 (Di Nasiyahan) hanggang 5 (Lubos na Nasiyahan). Maaari kang maglagay ng komento sa dulo.";
                 return response()->json([ 'provider' => 'gemini', 'reply' => $fallback, 'note' => 'fallback-exception' ]);
@@ -206,7 +224,7 @@ class ChatController extends BaseController
 
             return response()->json([
                 'provider' => 'xai',
-                'reply' => $reply,
+                'reply' => $sanitize($reply),
             ]);
         } catch (\Throwable $e) {
             $fallback = "Sorry, I’m having trouble connecting to ValBot right now. Here’s a quick tip in the meantime.\n\nFor survey help, choose your answers from 1 (Very Dissatisfied) to 5 (Very Satisfied). You can add comments at the end.\n\nPasensya na, may problema sa koneksyon ngayon. Pansamantala: Pumili ng sagot mula 1 (Di Nasiyahan) hanggang 5 (Lubos na Nasiyahan). Maaari kang maglagay ng komento sa dulo.";

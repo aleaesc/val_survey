@@ -23,7 +23,9 @@
     
     <style>
         /* Apply Inter font as default */
-    body { font-family: 'Inter', sans-serif; background-color: #f0f2f5; color: #111827; }
+    body { font-family: 'Inter', sans-serif; background-color: #f0f2f5; color: #111827; position: relative; }
+    /* Subtle city seal watermark background across the page */
+    body::before { content: ""; position: fixed; inset: 0; background: url('bgseal.png') no-repeat right 5% top 12%; background-size: 300px auto; opacity: 0.06; pointer-events: none; z-index: 0; }
         
         .text-brand-blue {
             color: #0d3a6b;
@@ -64,6 +66,8 @@
     .fab.open .fab-action.fb, .fab:focus-within .fab-action.fb { transform: translate(0, -84px) scale(1); }
     .fab .fab-action.faq { transform: translate(0,0) scale(0.8); }
     .fab.open .fab-action.faq, .fab:focus-within .fab-action.faq { transform: translate(-72px, -72px) scale(1); }
+    /* Chat formatting: preserve newlines for ValBot messages */
+    .chat-bubble { white-space: pre-wrap; }
     </style>
 </head>
 <body>
@@ -325,7 +329,7 @@
                             <label class="label">
                                 <span class="label-text">Full Name</span>
                             </label>
-                            <input type="text" id="input-name" placeholder="Harlson Mark Gardose (Optional)" class="input input-bordered w-full" />
+                            <input type="text" id="input-name" placeholder="Juan Dela Cruz (Optional)" class="input input-bordered w-full" />
                         </div>
                         <div class="form-control sm:col-span-1">
                             <label class="label">
@@ -1230,6 +1234,26 @@
                 <details class="collapse bg-base-200">
                     <summary class="collapse-title font-medium">How is my data used?</summary>
                     <div class="collapse-content"><p>To improve services per the Data Privacy Act (RA 10173). See the consent notice.</p></div>
+                </details>
+                <details class="collapse bg-base-200">
+                    <summary class="collapse-title font-medium">What does each rating mean?</summary>
+                    <div class="collapse-content"><p>1 Very Dissatisfied, 2 Dissatisfied, 3 Neutral, 4 Satisfied, 5 Very Satisfied.</p></div>
+                </details>
+                <details class="collapse bg-base-200">
+                    <summary class="collapse-title font-medium">Can I change my answers?</summary>
+                    <div class="collapse-content"><p>Yes. Use the Prev/Next buttons before the final Submit to review and adjust.</p></div>
+                </details>
+                <details class="collapse bg-base-200">
+                    <summary class="collapse-title font-medium">Who will see my feedback?</summary>
+                    <div class="collapse-content"><p>Authorized city staff reviewing aggregated results. Personal details are optional.</p></div>
+                </details>
+                <details class="collapse bg-base-200">
+                    <summary class="collapse-title font-medium">Emergency or urgent concerns?</summary>
+                    <div class="collapse-content"><p>For emergencies, contact Valenzuela hotlines: CDRRMO 8352-5000 / 8292-1405 / 0919 009 4045 / 0917 881 1639; Fire 8292-3519; Police 8352-4000 / 0906 419 7676 / 0998 598 7868.</p></div>
+                </details>
+                <details class="collapse bg-base-200">
+                    <summary class="collapse-title font-medium">The form won’t load. What can I do?</summary>
+                    <div class="collapse-content"><p>Refresh the page or try a different browser/network. If it persists, please message the Valenzuela City Facebook page.</p></div>
                 </details>
             </div>
         </div>
